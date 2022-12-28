@@ -121,8 +121,10 @@ def display(world, clear:bool=True):
     ### Display
   
     Displays the World.
+
     Parameters:
     :param world: 2D Array of the World.
+    :param clear: Defines if console should be cleared before outputting.
     """
     if clear:
         if os.name in ('nt', 'dos'):
@@ -142,8 +144,10 @@ def save(world, save_file:str):
     ### Save World
   
     Saves the World into a CSV file.
+
     Parameters:
     :param world: 2D Array of the World.
+    :param save_file: Path of the output file.
     """
     with open(save_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -156,6 +160,10 @@ def load(save_file:str):
     ### Load World
   
     Loads the World from a CSV file.
+
+    Parameters:
+    :param save_file: Path of the input file.
+
     Returns:
     2D Numpy Array: The 2D Array filled with random 0s and 1s.
     int: Seed value used to create World.
@@ -175,9 +183,10 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
   
     Parameters:
     :param world: 2D Array of the World.
+    :param seed: Seed value used to create World.
     :param tickrate: Number of times the game shall update in a second (FPS).
     :param toroidal: Boolean determining if the World should be in toroidal space.
-    :param stats: Boolean determining if statistics should be gathered.
+    :param save_file: Path of the in-/output file.
     """
     generations = 0
     while(True):
