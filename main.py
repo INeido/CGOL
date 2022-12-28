@@ -127,9 +127,10 @@ def display(world, clear:bool=True):
     :param clear: Defines if console should be cleared before outputting.
     """
     if clear:
-        if os.name in ('nt', 'dos'):
-            os.system('cls')
-        os.system('clear')
+        try:
+            os.system("cls" if os.name in ('nt', 'dos') else "clear")
+        except:
+            pass
 
     for row in world:
         for cell in row:
