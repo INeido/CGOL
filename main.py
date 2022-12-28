@@ -175,6 +175,12 @@ def load(save_file:str):
 
         return np.array(rows, dtype=int), None
 
+def shutdown():
+    try:
+        sys.exit(0)
+    except SystemExit:
+        os._exit(0)       
+
 def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
     """
     ### Game Loop
@@ -220,7 +226,7 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
 
     try:
         save(world_prev, save_file)
-        print("Last tick saved into:", f"{os.getcwd()}/cgol.csv")
+        print("Last tick saved into:", save_file)
     except:
         print("Couldn't save file.")
 
@@ -228,62 +234,33 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
     print("Seed used: ", seed)
     print("Generations: ", generations)
 
-    try:
-        sys.exit(0)
-    except SystemExit:
-        os._exit(0)        
+    shutdown()      
 
 def main():
-    parser = argparse.ArgumentParser(description="Conway's Game of Life")
+    parser = argparse.ArgumentParser(prog = 'CGOL', description = "Conway's Game of Life")
 
-    parser.add_argument('--size-x', dest='x', required=False)
-    parser.add_argument('--size-y', dest='y', required=False)
-    parser.add_argument('--tickrate', dest='tickrate', required=False)
-    parser.add_argument('--seed', dest='seed', required=False)
-    parser.add_argument('--toroidal', dest='toroidal', required=False)
-    parser.add_argument('--save-file', dest='save_file', required=False)
+    parser.add_argument('--size-x', '-x', dest='x', default=10, type=int, required=False, help='Height of the World.')
+    parser.add_argument('--size-y', '-y', dest='y', default=10, type=int, required=False, help='Width of the World.')
+    parser.add_argument('--tickrate', '-t', dest='tickrate', default=1, type=float, required=False, help='Number of times the game shall update in a second (FPS).')
+    parser.add_argument('--seed', '-s', dest='seed', default=-1, type=int, required=False, help='Seed value used to create World.')
+    parser.add_argument('--toroidal', '-o', dest='toroidal', default=False, type=bool, required=False, help='Boolean determining if the World should be in toroidal space.')
+    parser.add_argument('--save-file', '-f', dest='save_file', default='./cgol.csv', type=str, required=False, help='Path of the in-/output file. (Should be .csv)')
+    parser.add_argument('--load', '-l', dest='load', default=False, type=bool, required=False, help='Boolean determining if a previous save should be loaded.')
+    
     args = parser.parse_args()
 
-    # Set the World Size
-    x = 10
-    if args.x:
-        x = int(args.x)
-    y = 10
-    if args.y:
-        y = int(args.y)
-
-    # Set the Tickrate
-    tickrate = 1
-    if args.tickrate:
-        tickrate = int(args.tickrate)
-
-    # Set the World Seed ('-1' for random)
-    seed = -1
-    if args.seed:
-        seed = int(args.seed)
-
-    # Set the World Behaviour
-    toroidal = False
-    if args.toroidal:
-        toroidal = bool(args.toroidal)
-
-    # Set the save_file path
-    save_file = './cgol.csv'
-    if args.save_file:
-        save_file = string(args.save_file)
-
     # Get the World
-    if not os.path.exists('./cgol.csv'):
-        print('File not found. Creating new World...')
-        input('World created, press any key to start.')
-        world, seed = init_world(x, y, seed)
-    elif input('Load previous (L) or start New Game (N)? ').upper() == 'N':
-        world, seed = init_world(x, y, seed)
-    else:
-        world, seed = load(save_file)
+    if args.load:
+        try:
+            world, seed = load(args.save_file)
+        except Exception as e:
+            print("Couldn't load file.", e)
+            shutdown()
+    else: 
+        world, seed = init_world(args.x, args.y, args.seed)
 
     # Start Game
-    game_loop(world, seed, tickrate, toroidal, save_file)
+    game_loop(world, seed, args.tickrate, args.toroidal, args.save_file)
 
 if __name__ == '__main__':
     main()
