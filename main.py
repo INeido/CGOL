@@ -3,8 +3,8 @@ CGOL
 =====
 A whack Conway's Game of Life implementation.
 """
-import numpy as np
 import argparse
+import numpy
 import time
 import csv
 import sys
@@ -26,8 +26,8 @@ def init_world(size_x:int, size_y:int, seed:int=-1):
     int: Seed value used to create World.
     """
     if seed == -1:
-        seed = np.random.randint(2**32 - 1)
-    rng = np.random.default_rng(seed)
+        seed = numpy.random.randint(2**32 - 1)
+    rng = numpy.random.default_rng(seed)
     return rng.choice([0, 1], size=(size_x, size_y)), seed
 
 def get_neighbours(world, x:int, y:int):
@@ -110,11 +110,16 @@ def get_state(world, neighbours:int, x:int, y:int):
     Returns:
     Integer: 0 for Dead, 1 for Alive.
     """
-    if neighbours < 2 or neighbours > 3:
-        return 0
-    if world[x][y] == 0 and neighbours == 3:
-        return 1
-    return world[x][y]
+    if world[x][y] == 1:
+        if neighbours in [2, 3]:
+            return 1
+        else:
+            return 0
+    else:
+        if neighbours == 3:
+            return 1
+        else:
+            return 0
 
 def display(world, clear:bool=True):
     """
@@ -177,13 +182,41 @@ def load(save_file:str):
         rows = [row for row in reader]
 
         # Last row is the seed.
-        return np.array(rows[:-1], dtype=int), rows[-1][0]
+        return numpy.array(rows[:-1], dtype=int), rows[-1][0]
 
 def shutdown():
     try:
         sys.exit(0)
     except SystemExit:
         os._exit(0)       
+
+def update_world(world, toroidal:bool):
+    """
+    ### Update World
+    
+    Updates the state of the cells in the world according to the rules of the Game of Life.
+    
+    Parameters:
+    :param world: 2D Array of the World.
+    :param toroidal: Boolean indicating whether the space is toroidal or not. Default is False.
+    
+    Returns:
+    2D Numpy Array: The updated 2D Array.
+    """
+    if toroidal:
+        get_neighbours_func = get_neighbours_toroidal
+    else:
+        get_neighbours_func = get_neighbours
+    
+    updated_world = numpy.empty_like(world)
+    
+    # Loop through every cell to first get the count of the neighbours and then update the cell state.
+    for x in range(len(world)):
+        for y in range(len(world[0])):
+            neighbours = get_neighbours_func(world, x, y)
+            updated_world[x][y] = get_state(world, neighbours, x, y)
+
+    return updated_world
 
 def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
     """
@@ -195,7 +228,7 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
     :param world: 2D Array of the World.
     :param seed: Seed value used to create World.
     :param tickrate: Number of times the game shall update in a second (FPS).
-    :param toroidal: Boolean determining if the World should be in toroidal space.
+    :param toroidal: Boolean indicating whether the space is toroidal or not.
     :param save_file: Path of the in-/output file.
     """
     generations = 0
@@ -203,7 +236,7 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
         try:
             generations += 1
             # !!Shallow!! Copy is needed because we are updating 'world' in place and we want to save the last full World.
-            world_prev = np.copy(world)
+            world_prev = numpy.copy(world)
 
             # Display before we start updating the cells. 
             display(world)
@@ -212,15 +245,10 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
             time.sleep(1 / tickrate)
 
             # Loop through every cell to first get the count of the neighbours and then update the cell state.
-            for x in range(len(world)):
-                for y in range(len(world[0])):
-                    if toroidal:
-                        world[x][y] = get_state(world_prev, get_neighbours_toroidal(world_prev, x, y), x, y)
-                    else:
-                        world[x][y] = get_state(world_prev, get_neighbours(world_prev, x, y), x, y)
+            world = update_world(world, toroidal)
 
             # Catch if the World stopped developing because of a stalemate.
-            if np.array_equal(world, world_prev):
+            if numpy.array_equal(world, world_prev):
                 print("\nGame stopped. Reason: Stalemate.")
                 break
 
@@ -247,7 +275,7 @@ def main():
     parser.add_argument('--size-y', '-y', dest='y', default=10, type=int, required=False, help='Width of the World.')
     parser.add_argument('--tickrate', '-t', dest='tickrate', default=1, type=float, required=False, help='Number of times the game shall update in a second (FPS).')
     parser.add_argument('--seed', '-s', dest='seed', default=-1, type=int, required=False, help='Seed value used to create World.')
-    parser.add_argument('--toroidal', '-o', dest='toroidal', default=False, type=bool, required=False, help='Boolean determining if the World should be in toroidal space.')
+    parser.add_argument('--toroidal', '-o', dest='toroidal', default=False, type=bool, required=False, help='Boolean indicating whether the space is toroidal or not.')
     parser.add_argument('--save-file', '-f', dest='save_file', default='./cgol.csv', type=str, required=False, help='Path of the in-/output file. (Should be .csv)')
     parser.add_argument('--load', '-l', dest='load', default=False, type=bool, required=False, help='Boolean determining if a previous save should be loaded.')
     
