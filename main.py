@@ -27,8 +27,8 @@ def init_world(size_x:int, size_y:int, seed:int=-1):
     """
     if seed == -1:
         seed = np.random.randint(2**32 - 1)
-    np.random.seed(seed)
-    return np.random.randint(0,2,(size_x, size_y)), seed
+    rng = np.random.default_rng(seed)
+    return rng.choice([0, 1], size=(size_x, size_y)), seed
 
 def get_neighbours(world, x:int, y:int):
     """
