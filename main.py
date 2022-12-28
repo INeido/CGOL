@@ -139,7 +139,7 @@ def display(world, clear:bool=True):
                 print("■", end=" ")
         print()
 
-def save(world, save_file:str):
+def save(world, save_file:str, seed:int):
     """
     ### Save World
   
@@ -148,12 +148,14 @@ def save(world, save_file:str):
     Parameters:
     :param world: 2D Array of the World.
     :param save_file: Path of the output file.
+    :param Seed: Seed value used to create World.
     """
     with open(save_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
 
         for row in world:
             writer.writerow(row)
+        writer.writerow([seed])
 
 def load(save_file:str):
     """
@@ -173,7 +175,8 @@ def load(save_file:str):
 
         rows = [row for row in reader]
 
-        return np.array(rows, dtype=int), None
+        # Last row is the seed.
+        return np.array(rows[:-1], dtype=int), rows[-1][0]
 
 def shutdown():
     try:
@@ -223,12 +226,12 @@ def game_loop(world, seed:int, tickrate:float, toroidal:bool, save_file:str):
         except (KeyboardInterrupt):
             print("\nGame stopped. Reason: KeyboardInterrupt.")
             break
-
+    
     try:
-        save(world_prev, save_file)
+        save(world_prev, save_file, seed)
         print("Last tick saved into:", save_file)
-    except:
-        print("Couldn't save file.")
+    except Exception as e:
+        print("Couldn't save file.", e)
 
     print("")
     print("Seed used: ", seed)
