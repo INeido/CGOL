@@ -21,6 +21,16 @@ As the titel says.
 | --save-file (-f) | Path of the in-/output file. (Should be .csv) | './cgol.csv' |
 | --load (-l) | Boolean determining if a previous save should be loaded. | False |
 
+## Controls
+
+| Button | Description |
+| ------ | ------ |
+| ESC | Closes game. |
+| RETURN | Pauses game. |
+| Left Click | Births cell. |
+| Right Click | Kills cell. |
+| Middle Click | Drags screen. |
+
 ## Installing
 
 You can install the code and download the requirements with the following commands.
@@ -33,13 +43,3 @@ Finally run the code with.
 ```bash
 python main.py
 ```
-
-## Controls
-
-| Button | Description |
-| ------ | ------ |
-| ESC | Closes game. |
-| RETURN | Pauses game. |
-| Left Click | Births cell. |
-| Right Click | Kills cell. |
-| Middle Click | Drags screen. |
