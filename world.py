@@ -26,6 +26,7 @@ class World:
 
         # If 'rows' are empty, create new grid, else convert 'rows' to numpy array.
         self.create() if len(rows) == 0 else self.load_from_csv(rows)
+        self.grid_backup_0 = numpy.copy(self.grid)
         self.backup()
 
     def create(self):
@@ -62,18 +63,31 @@ class World:
 
         Creates a shallow copy of the grid.
         """
-        self.grid_backup = numpy.copy(self.grid)
+        temp = numpy.copy(self.grid_backup_0)
+        self.grid_backup_0 = numpy.copy(self.grid)
+        self.grid_backup_1 = numpy.copy(temp)
 
-    def compare_backup(self):
+    def check_stalemate(self):
         """
-        ### Compare Backup
+        ### Check Stalemate
 
-        Compares the last backup with the current grid.
+        Compares the last backup with the current grid to see of it changed.
 
         Returns:
         Boolean: Is the backup the same as the current grid?
         """
-        return numpy.array_equal(self.grid, self.grid_backup)
+        return numpy.array_equal(self.grid, self.grid_backup_0)
+
+    def check_oscillators(self):
+        """
+        ### Compare Backup
+
+        Compares the second last backup with the current grid to see of it changed. 
+
+        Returns:
+        Boolean: Is the second last backup the same as the current grid?
+        """
+        return numpy.array_equal(self.grid, self.grid_backup_1)
 
     def get_neighbours(self):
         """

@@ -4,10 +4,11 @@ Game
 """
 from world import World
 import pygame
-import time
 import csv
 import sys
 import os
+
+import numpy
 
 
 class Game:
@@ -34,6 +35,8 @@ class Game:
         self.cell_size = cell_size
         self.tickrate = tickrate
         self.save_file = save_file
+        self.offset_x = 0
+        self.offset_y = 0
 
     def setup_pygame(self):
         """
@@ -45,6 +48,7 @@ class Game:
 
         self.dis = pygame.display.set_mode((self.res_h, self.res_w))
         pygame.display.set_caption("CGOL")
+        self.clock = pygame.time.Clock()
 
     def draw(self):
         """
@@ -56,7 +60,7 @@ class Game:
         for x in range(len(self.world.grid)):
             for y in range(len(self.world.grid[0])):
                 if self.world.grid[x][y]:
-                    pygame.draw.rect(self.dis, self.c_a, pygame.Rect(y*self.cell_size, x*self.cell_size, self.cell_size, self.cell_size))
+                    pygame.draw.rect(self.dis, self.c_a, pygame.Rect(y*self.cell_size+self.offset_x, x*self.cell_size+self.offset_y, self.cell_size, self.cell_size))
 
     def create_world(self, size_x: int, size_y: int, seed: int, load: bool):
         """
@@ -110,31 +114,109 @@ class Game:
         """
         ### Game Loop
 
-        The engine that runs the game indefinetly until Keyboardinterrupt.
+        The main loop that calculates and renders the cells.
         """
+        # Flags
+        is_looping = True
+        running = True
+        m_down = False
+        firstpos = 0
+
         while True:
-            for e in pygame.event.get():
-                if e.type == pygame.QUIT:
-                    self.shutdown()
+            self.clock.tick(self.tickrate)
+
+            s_pos = pygame.mouse.get_pos()
+
+            # Screen drag
+            if firstpos != 0:
+                self.offset_x, self.offset_y = numpy.add(numpy.subtract(s_pos, firstpos), (oldoffset_x, oldoffset_y))
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    is_looping = False
+                    print("\nGame stopped. Reason: Pygame closed.")
+                    break
+
+                # Key events
+                elif event.type == pygame.KEYDOWN:
+                    # RETURN pressed: Pause game
+                    if event.key == pygame.K_RETURN:
+                        running = not running
+                    # ESCAPE pressed: Close game
+                    if event.key == pygame.K_ESCAPE:
+                        is_looping = False
+                        print("\nGame stopped. Reason: Pygame closed.")
+                        break
+
+                # Mouse events
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # Left/Right Click: Draw
+                    if event.button == 1 or event.button == 3:
+                        m_down = True
+                    if event.button == 1:
+                        dragval = 1
+                    if event.button == 3:
+                        dragval = 0
+                    # Middle Mouse: Drag screen
+                    if event.button == 2:
+                        oldoffset_x = self.offset_x
+                        oldoffset_y = self.offset_y
+                        firstpos = s_pos
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    # Left/Right Click: Draw
+                    if event.button == 1 or event.button == 3:
+                        m_down = False
+                    # Middle Mouse: Drag screen
+                    if event.button == 2:
+                        firstpos = 0
+
+                # Zoom
+                elif event.type == pygame.MOUSEWHEEL:
+                    if event.y == 1:
+                        self.cell_size *= 2
+                    elif event.y == -1:
+                        self.cell_size /= 2
+
+            if m_down:
+                x, y = pygame.mouse.get_pos()
+                try:
+                    # I don't really get why this works
+                    self.world.grid[int((y-self.offset_y)//self.cell_size)][int((x-self.offset_x)//self.cell_size)] = dragval
+                except:
+                    pass
 
             try:
-                self.world.generations += 1
-                # Copy is needed because we are updating 'world' in place and we want to save the last full World.
-                self.world.backup()
-
-                # Draw before we start updating the cells.
+                # Draw before we start updating the cells
                 self.draw()
+
+                # Update display
                 pygame.display.update()
 
-                # Convert tickrate to seconds for sleep.
-                time.sleep(1 / self.tickrate)
+                # Break out of main loop
+                if not is_looping:
+                    break
 
-                # Loop through every cell to first get the count of the neighbours and then update the cell state.
+                # Pause game
+                if not running:
+                    continue
+
+                # Iterate generations
+                self.world.generations += 1
+
+                # Copy is needed because we are updating 'world' in place and we want to save the last full World
+                self.world.backup()
+
+                # Update the state of the world
                 self.world.update()
 
-                # Catch if the World stopped developing because of a stalemate.
-                if self.world.compare_backup():
+                # Catch if the World stopped developing because of a stalemate
+                if self.world.check_stalemate():
                     print("\nGame stopped. Reason: Stalemate.")
+                    break
+
+                # Catch if the World stopped developing because only oscillators remain
+                if self.world.check_oscillators():
+                    print("\nGame stopped. Reason: Only Oscillators remaining.")
                     break
 
             except (KeyboardInterrupt):
