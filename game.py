@@ -3,6 +3,7 @@ Game
 ====
 """
 from world import World
+import pygame
 import time
 import csv
 import sys
@@ -16,15 +17,38 @@ class Game:
     Contains the functions needed to run the game.
 
     Parameters:
+    :param res_h: Height of the Game.
+    :param res_w: Width of the Game.
+    :param c_a: Colour for alive cells.
+    :param c_d: Colour for dead cells.
+    :param cell_size: Size of a cell in pixel.
     :param tickrate: Number of times the game shall update in a second (FPS).
     :param save_file: Path of the in-/output file.
     """
 
-    def __init__(self, tickrate: int, save_file: str):
+    def __init__(self, res_h: int, res_w: int, c_a, c_d, cell_size: int, tickrate: int, save_file: str):
+        self.res_h = res_h
+        self.res_w = res_w
+        self.c_a = c_a
+        self.c_d = c_d
+        self.cell_size = cell_size
         self.tickrate = tickrate
         self.save_file = save_file
 
-    def create_world(self, size_x: int, size_y: int, seed: int, toroidal: bool, load: bool):
+        pygame.init()
+
+    def setup_pygame(self):
+        self.dis = pygame.display.set_mode((self.res_h, self.res_w))
+        pygame.display.set_caption("CGOL")
+
+    def draw(self):
+        self.dis.fill(self.c_d)
+        for x in range(len(self.world.grid)):
+            for y in range(len(self.world.grid[0])):
+                if self.world.grid[x][y]:
+                    pygame.draw.rect(self.dis, self.c_a, pygame.Rect(y*self.cell_size, x*self.cell_size, self.cell_size, self.cell_size))
+
+    def create_world(self, size_x: int, size_y: int, seed: int, load: bool):
         """
         ### Create World
 
@@ -34,42 +58,18 @@ class Game:
         :param size_x: Height of the Grid.
         :param size_y: Width of the Grid.
         :param seed: Seed for the array generation. Default is random (-1).
-        :param toroidal: Boolean indicating whether the space is toroidal or not.
         :param load: Boolean indicating whether the last game should be loaded.
         """
         # Get the World
         if load:
             try:
-                self.world = World(size_x, size_y, seed, toroidal, self.load_grid())
+                self.world = World(size_x, size_y, seed, self.load_grid())
             except Exception as e:
                 print("Couldn't load file.", e)
                 self.shutdown()
         else:
             # Create new World
-            self.world = World(size_x, size_y, seed, toroidal)
-
-    def display(self, clear: bool = True):
-        """
-        ### Display
-
-        Displays the Grid.
-
-        Parameters:
-        :param clear: Defines if console should be cleared before outputting.
-        """
-        if clear:
-            try:
-                os.system("cls" if os.name in ("nt", "dos") else "clear")
-            except:
-                pass
-
-        for row in self.world.grid:
-            for cell in row:
-                if cell == 0:
-                    print(" ", end=" ")
-                else:
-                    print("■", end=" ")
-            print()
+            self.world = World(size_x, size_y, seed)
 
     def save_grid(self):
         """
@@ -105,13 +105,18 @@ class Game:
         The engine that runs the game indefinetly until Keyboardinterrupt.
         """
         while True:
+            for e in pygame.event.get():
+                if e.type == pygame.QUIT:
+                    self.shutdown()
+
             try:
                 self.world.generations += 1
                 # Copy is needed because we are updating 'world' in place and we want to save the last full World.
                 self.world.backup()
 
-                # Display before we start updating the cells.
-                self.display()
+                # Draw before we start updating the cells.
+                self.draw()
+                pygame.display.update()
 
                 # Convert tickrate to seconds for sleep.
                 time.sleep(1 / self.tickrate)
@@ -141,6 +146,7 @@ class Game:
         self.shutdown()
 
     def shutdown(self):
+        pygame.quit()
         try:
             sys.exit(0)
         except SystemExit:

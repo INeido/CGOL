@@ -18,20 +18,26 @@ import argparse
 def main():
     # Gather arguments
     parser = argparse.ArgumentParser(prog="CGOL", description="Conway's Game of Life")
-    parser.add_argument("--size-x", "-x", dest="size_x", default=10, type=int, required=False, help="Height of the World.")
-    parser.add_argument("--size-y", "-y", dest="size_y", default=10, type=int, required=False, help="Width of the World.")
+    parser.add_argument("--res-h", "-rh", dest="res_h", default=720, type=int, required=False, help="Height of the Game.")
+    parser.add_argument("--res-w", "-rw", dest="res_w", default=1080, type=int, required=False, help="Width of the Game.")
+    parser.add_argument("--colour-alive", "-ca", dest="c_a", default=(255, 255, 255), type=int, required=False, help="Colour for alive cells. (R, G, B)")
+    parser.add_argument("--colour-dead", "-cd", dest="c_d", default=(0, 0, 0), type=int, required=False, help="Colour for dead cells. (R, G, B)")
+    parser.add_argument("--cell-size", "-cz", dest="cell_size", default=12, type=int, required=False, help="Size of a cell in pixel.")
+    parser.add_argument("--size-x", "-sx", dest="size_x", default=10, type=int, required=False, help="Height of the World.")
+    parser.add_argument("--size-y", "-sy", dest="size_y", default=10, type=int, required=False, help="Width of the World.")
     parser.add_argument("--tickrate", "-t", dest="tickrate", default=1, type=float, required=False, help="Number of times the game shall update in a second (FPS).")
     parser.add_argument("--seed", "-s", dest="seed", default=-1, type=int, required=False, help="Seed value used to create World.")
-    parser.add_argument("--toroidal", "-o", dest="toroidal", default=False, type=bool, required=False, help="Boolean indicating whether the space is toroidal or not.")
     parser.add_argument("--save-file", "-f", dest="save_file", default="./cgol.csv", type=str, required=False, help="Path of the in-/output file. (Should be .csv)")
     parser.add_argument("--load", "-l", dest="load", default=False, type=bool, required=False, help="Boolean determining if a previous save should be loaded.")
     args = parser.parse_args()
 
     # Create new Game
-    game = Game(args.tickrate, args.save_file)
+    game = Game(args.res_w, args.res_h, args.c_a, args.c_d, args.cell_size, args.tickrate, args.save_file)
+
+    game.setup_pygame()
 
     # Let Game create the World
-    game.create_world(args.size_x, args.size_y, args.seed, args.toroidal, args.load)
+    game.create_world(args.size_x, args.size_y, args.seed, args.load)
 
     # Start Game
     game.game_loop()
