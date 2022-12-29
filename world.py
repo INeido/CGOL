@@ -86,38 +86,40 @@ class World:
         """
         # Create a new array the same size as 'grid'
         neighbours = numpy.zeros_like(self.grid)
+
         # Roll over every axis to get a new array with the number of neighbours
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
                 if not dx and not dy:
                     continue
                 neighbours += numpy.roll(numpy.roll(self.grid, dx, axis=0), dy, axis=1)
+
         return neighbours
 
     def apply_rules(self, neighbours):
         """
         ### Get State
 
-        Determines the new state of a cell for the current tick.
+        Determines the new state of each cell for the current tick.
 
         Parameters:
-        :param neighbours: The number of neighbours.
+        :param neighbours: The number of neighbours for each cell.
 
         Returns:
         2d Array: New state of cells.
         """
         # Create a copy of the grid to store the next generation
-        new_grid = numpy.copy(self.grid)
+        grid = numpy.copy(self.grid)
 
         # Find the indices of cells that are currently alive or dead
         alive = numpy.where(self.grid == 1)
         dead = numpy.where(self.grid == 0)
 
-        # Apply the rules to all cells using a single call to where
-        new_grid[alive] = numpy.where((neighbours[alive] == 2) | (neighbours[alive] == 3), 1, 0)
-        new_grid[dead] = numpy.where(neighbours[dead] == 3, 1, 0)
+        # Apply the rules to all cells
+        grid[alive] = numpy.where((neighbours[alive] == 2) | (neighbours[alive] == 3), 1, 0)
+        grid[dead] = numpy.where(neighbours[dead] == 3, 1, 0)
 
-        return new_grid
+        return grid
 
     def update(self):
         """
@@ -125,8 +127,6 @@ class World:
 
         Updates the state of the cells in the world according to the rules of the Game of Life.
         """
-        updated_world = numpy.empty_like(self.grid)
-
         # Get neighbours
         neighbours = self.get_neighbours()
 

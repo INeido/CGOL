@@ -35,13 +35,23 @@ class Game:
         self.tickrate = tickrate
         self.save_file = save_file
 
+    def setup_pygame(self):
+        """
+        ### Setup Pygame
+
+        Creates and configures pygame instance.
+        """
         pygame.init()
 
-    def setup_pygame(self):
         self.dis = pygame.display.set_mode((self.res_h, self.res_w))
         pygame.display.set_caption("CGOL")
 
     def draw(self):
+        """
+        ### Draw Game
+
+        Draws the current World.
+        """
         self.dis.fill(self.c_d)
         for x in range(len(self.world.grid)):
             for y in range(len(self.world.grid[0])):
@@ -60,7 +70,6 @@ class Game:
         :param seed: Seed for the array generation. Default is random (-1).
         :param load: Boolean indicating whether the last game should be loaded.
         """
-        # Get the World
         if load:
             try:
                 self.world = World(size_x, size_y, seed, self.load_grid())
@@ -68,7 +77,6 @@ class Game:
                 print("Couldn't load file.", e)
                 self.shutdown()
         else:
-            # Create new World
             self.world = World(size_x, size_y, seed)
 
     def save_grid(self):
