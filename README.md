@@ -1,7 +1,9 @@
 # CGOL
+
 A whack Conway's Game of Life implementation.
 
 ## Description
+
 As the titel says.
 
 ## Arguments
@@ -15,3 +17,16 @@ As the titel says.
 | --toroidal (-o) | Boolean indicating whether the space is toroidal or not. | False |
 | --save-file (-f) | Path of the in-/output file. (Should be .csv) | './cgol.csv' |
 | --load (-l) | Boolean determining if a previous save should be loaded. | False |
+
+## Installing
+
+You can install the code and download the requirements with the following commands.
+```bash
+git clone https://github.com/INeido/CGOL
+cd CGOL
+pip install -r requirements.txt
+```
+Finally run the code with.
+```bash
+python main.py
+```
