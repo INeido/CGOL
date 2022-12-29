@@ -8,8 +8,6 @@ import csv
 import sys
 import os
 
-import numpy
-
 
 class Game:
     """
@@ -44,6 +42,10 @@ class Game:
 
         Creates and configures pygame instance.
         """
+        try:
+            os.system("cls" if os.name in ("nt", "dos") else "clear")
+        except:
+            pass
         pygame.init()
 
         self.dis = pygame.display.set_mode((self.res_h, self.res_w))
@@ -129,7 +131,7 @@ class Game:
 
             # Screen drag
             if firstpos != 0:
-                self.offset_x, self.offset_y = numpy.add(numpy.subtract(s_pos, firstpos), (oldoffset_x, oldoffset_y))
+                self.offset_x, self.offset_y = self.world.calc_offset(s_pos, firstpos, oldoffset_x, oldoffset_y)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -174,7 +176,7 @@ class Game:
                 elif event.type == pygame.MOUSEWHEEL:
                     if event.y == 1:
                         self.cell_size *= 2
-                    elif event.y == -1:
+                    elif event.y == -1 and self.cell_size > 1:
                         self.cell_size /= 2
 
             if m_down:

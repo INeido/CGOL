@@ -82,12 +82,23 @@ class World:
         """
         ### Compare Backup
 
-        Compares the second last backup with the current grid to see of it changed. 
+        Compares the second last backup with the current grid to see of it changed.
 
         Returns:
         Boolean: Is the second last backup the same as the current grid?
         """
         return numpy.array_equal(self.grid, self.grid_backup_1)
+
+    def calc_offset(self, s_pos, firstpos, oldoffset_x, oldoffset_y):
+        """
+        ### Calc Offset
+
+        Calculates new X and > offsets based on mouse position.
+
+        Returns:
+        Tuple: New X and Y offset.
+        """
+        return numpy.add(numpy.subtract(s_pos, firstpos), (oldoffset_x, oldoffset_y))
 
     def get_neighbours(self):
         """
