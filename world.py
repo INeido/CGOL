@@ -1,3 +1,7 @@
+"""
+World
+====
+"""
 import numpy
 
 
@@ -6,20 +10,16 @@ class World:
     ### World
 
     Contains various functions to store and update a grid with Cells.
+
+    Parameters:
+    :param size_x: Height of the World.
+    :param size_y: Width of the World.
+    :param seed: Seed for the array generation. Default is random.
+    :param toroidal: Boolean indicating whether the space is toroidal or not.
+    :param grid: The 2D Array filled with random 0s and 1s.
     """
+
     def __init__(self, size_x: int, size_y: int, seed: int, toroidal: bool, rows=[]):
-        """
-        ### World Constructor
-
-        Initiates the World Class.
-
-        Parameters:
-        :param size_x: Height of the World.
-        :param size_y: Width of the World.
-        :param seed: Seed for the array generation. Default is random.
-        :param toroidal: Boolean indicating whether the space is toroidal or not.
-        :param grid: The 2D Array filled with random 0s and 1s.
-        """
         self.size_x = size_x
         self.size_y = size_y
         self.seed = seed
@@ -87,16 +87,9 @@ class World:
         Returns:
         Integer: The number of neighbours of the cell.
         """
-        count, mask = 0, [
-            [-1, 1],
-            [0, 1],
-            [1, 1],
-            [-1, 0],
-            [1, 0],
-            [-1, -1],
-            [0, -1],
-            [1, -1],
-        ]
+        count, mask = 0, [[-1, 1],  [0, 1],  [1, 1],
+                          [-1, 0],           [1, 0],
+                          [-1, -1], [0, -1], [1, -1]]
 
         for i in mask:
             if (0 <= x + i[0] < len(self.grid)) and (0 <= y + i[1] < len(self.grid[0])):
@@ -116,16 +109,9 @@ class World:
         Returns:
         Integer: The number of neighbours of the cell.
         """
-        count, mask = 0, [
-            [-1, 1],
-            [0, 1],
-            [1, 1],
-            [-1, 0],
-            [1, 0],
-            [-1, -1],
-            [0, -1],
-            [1, -1],
-        ]
+        count, mask = 0, [[-1, 1],  [0, 1],  [1, 1],
+                          [-1, 0],           [1, 0],
+                          [-1, -1], [0, -1], [1, -1]]
 
         for i in mask:
             # Check if X Coordinate is off the edge, if so wrap around.
@@ -152,10 +138,6 @@ class World:
         ### Get State
 
         Determines the new state of a cell for the current tick.
-        Rules:
-        1. Any live cell with two or three live neighbours survives.
-        2. Any dead cell with three live neighbours becomes a live cell.
-        3. All other live cells die in the next generation. Similarly, all other dead cells stay dead.
 
         Parameters:
         :param neighbours: The number of neighbours.

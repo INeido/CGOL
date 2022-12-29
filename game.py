@@ -1,3 +1,7 @@
+"""
+Game
+====
+"""
 from world import World
 import time
 import csv
@@ -10,24 +14,17 @@ class Game:
     ### Game
 
     Contains the functions needed to run the game.
+
+    Parameters:
+    :param tickrate: Number of times the game shall update in a second (FPS).
+    :param save_file: Path of the in-/output file.
     """
 
-    def __init__(self, tickrate: int, save_file: str, load: bool):
-        """
-        ### Game Constructor
-
-        Initiates the Game Class.
-
-        Parameters:
-        :param tickrate: Number of times the game shall update in a second (FPS).
-        :param save_file: Path of the in-/output file.
-        """
+    def __init__(self, tickrate: int, save_file: str):
         self.tickrate = tickrate
         self.save_file = save_file
-        self.load = load
-        self.world = None
 
-    def create_world(self, size_x: int, size_y: int, seed: int, toroidal: bool):
+    def create_world(self, size_x: int, size_y: int, seed: int, toroidal: bool, load: bool):
         """
         ### Create World
 
@@ -38,17 +35,21 @@ class Game:
         :param size_y: Width of the Grid.
         :param seed: Seed for the array generation. Default is random (-1).
         :param toroidal: Boolean indicating whether the space is toroidal or not.
+        :param load: Boolean indicating whether the last game should be loaded.
         """
         # Get the World
-        if self.load:
+        if load:
             try:
-                self.world = World(size_x, size_y, seed, toroidal, self.load_grid())
+                self.world = World(size_x, size_y, seed,
+                                   toroidal, self.load_grid())
             except Exception as e:
-                print("Couldn't load file.", e)
+                print(
+                    "Couldn't load file.", e)
                 self.shutdown()
         else:
             # Create new World
-            self.world = World(size_x, size_y, seed, toroidal)
+            self.world = World(
+                size_x, size_y, seed, toroidal)
 
     def display(self, clear: bool = True):
         """
@@ -61,7 +62,8 @@ class Game:
         """
         if clear:
             try:
-                os.system("cls" if os.name in ("nt", "dos") else "clear")
+                os.system("cls" if os.name in (
+                    "nt", "dos") else "clear")
             except:
                 pass
 
