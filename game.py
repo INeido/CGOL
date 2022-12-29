@@ -1,5 +1,4 @@
 from world import World
-import numpy
 import time
 import csv
 import sys
@@ -27,7 +26,6 @@ class Game:
         self.save_file = save_file
         self.load = load
         self.world = None
-        self.generations = 0
 
     def create_world(self, size_x: int, size_y: int, seed: int, toroidal: bool):
         """
@@ -44,8 +42,7 @@ class Game:
         # Get the World
         if self.load:
             try:
-                grid, seed = self.load_grid()
-                self.world = World(size_x, size_y, seed, toroidal, grid)
+                self.world = World(size_x, size_y, seed, toroidal, self.load_grid())
             except Exception as e:
                 print("Couldn't load file.", e)
                 self.shutdown()
@@ -88,6 +85,7 @@ class Game:
             for row in self.world.grid:
                 writer.writerow(row)
             writer.writerow([self.world.seed])
+            writer.writerow([self.world.generations])
 
     def load_grid(self):
         """
@@ -96,16 +94,12 @@ class Game:
         Loads the Grid from a CSV file.
 
         Returns:
-        2D Numpy Array: The 2D Array filled with random 0s and 1s.
+        array: Rows of the CSV
         int: Seed value used to create Grid.
         """
         with open(self.save_file, "r") as csvfile:
             reader = csv.reader(csvfile)
-
-            rows = [row for row in reader]
-
-            # Last row is the seed.
-            return numpy.array(rows[:-1], dtype=int), rows[-1][0]
+            return [row for row in reader]
 
     def game_loop(self):
         """
@@ -115,7 +109,7 @@ class Game:
         """
         while True:
             try:
-                self.generations += 1
+                self.world.generations += 1
                 # Copy is needed because we are updating 'world' in place and we want to save the last full World.
                 self.world.backup()
 
@@ -145,7 +139,7 @@ class Game:
 
         print("")
         print("Seed used: ", self.world.seed)
-        print("Generations: ", self.generations)
+        print("Generations: ", self.world.generations)
 
         self.shutdown()
 

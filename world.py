@@ -7,8 +7,7 @@ class World:
 
     Contains various functions to store and update a grid with Cells.
     """
-
-    def __init__(self, size_x: int, size_y: int, seed: int, toroidal: bool, grid=[]):
+    def __init__(self, size_x: int, size_y: int, seed: int, toroidal: bool, rows=[]):
         """
         ### World Constructor
 
@@ -25,12 +24,11 @@ class World:
         self.size_y = size_y
         self.seed = seed
         self.toroidal = toroidal
-        self.grid = grid
-        self.grid_backup = grid
+        self.generations = 0
 
-        # Create the grid holding the cells.
-        if len(self.grid) == 0:
-            self.create()
+        # If 'rows' are empty, create new grid, else convert 'rows' to numpy array.
+        self.create() if len(rows) == 0 else self.load_from_csv(rows)
+        self.backup()
 
     def create(self):
         """
@@ -46,6 +44,16 @@ class World:
         rng = numpy.random.default_rng(self.seed)
 
         self.grid = rng.choice([0, 1], size=(self.size_x, self.size_y))
+
+    def load_from_csv(self, grid):
+        """
+        ### Load from CSV
+
+        Loads data from CSV file.
+        """
+        self.grid = numpy.array(grid[:-2], dtype=int)
+        self.seed = int(grid[-2][0])
+        self.generations = int(grid[-1][0])
 
     def backup(self):
         """
