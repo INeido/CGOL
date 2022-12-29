@@ -16,7 +16,7 @@ class World:
     :param size_y: Width of the World.
     :param seed: Seed for the array generation. Default is random.
     :param toroidal: Boolean indicating whether the space is toroidal or not.
-    :param grid: The 2D Array filled with random 0s and 1s.
+    :param rows: The 2D Array filled with random 0s and 1s with the last being settings.
     """
 
     def __init__(self, size_x: int, size_y: int, seed: int, toroidal: bool, rows=[]):
@@ -50,6 +50,9 @@ class World:
         ### Load from CSV
 
         Loads data from CSV file.
+
+        Parameters:
+        :param grid: The 2D Array filled with random 0s and 1s with the last being settings.
         """
         self.grid = numpy.array(grid[:-2], dtype=int)
         self.seed = int(grid[-2][0])

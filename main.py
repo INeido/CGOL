@@ -23,8 +23,8 @@ def main():
     parser.add_argument("--tickrate", "-t", dest="tickrate", default=1, type=float, required=False, help="Number of times the game shall update in a second (FPS).")
     parser.add_argument("--seed", "-s", dest="seed", default=-1, type=int, required=False, help="Seed value used to create World.")
     parser.add_argument("--toroidal", "-o", dest="toroidal", default=False, type=bool, required=False, help="Boolean indicating whether the space is toroidal or not.")
-    parser.add_argument("--save-file",      "-f", dest="save_file", default="./cgol.csv", type=str,  required=False,  help="Path of the in-/output file. (Should be .csv)")
-    parser.add_argument("--load",      "-l",    dest="load",   default=False, type=bool, required=False,  help="Boolean determining if a previous save should be loaded.")
+    parser.add_argument("--save-file", "-f", dest="save_file", default="./cgol.csv", type=str, required=False, help="Path of the in-/output file. (Should be .csv)")
+    parser.add_argument("--load", "-l", dest="load", default=False, type=bool, required=False, help="Boolean determining if a previous save should be loaded.")
     args = parser.parse_args()
 
     # Create new Game

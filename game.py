@@ -40,16 +40,13 @@ class Game:
         # Get the World
         if load:
             try:
-                self.world = World(size_x, size_y, seed,
-                                   toroidal, self.load_grid())
+                self.world = World(size_x, size_y, seed, toroidal, self.load_grid())
             except Exception as e:
-                print(
-                    "Couldn't load file.", e)
+                print("Couldn't load file.", e)
                 self.shutdown()
         else:
             # Create new World
-            self.world = World(
-                size_x, size_y, seed, toroidal)
+            self.world = World(size_x, size_y, seed, toroidal)
 
     def display(self, clear: bool = True):
         """
@@ -62,8 +59,7 @@ class Game:
         """
         if clear:
             try:
-                os.system("cls" if os.name in (
-                    "nt", "dos") else "clear")
+                os.system("cls" if os.name in ("nt", "dos") else "clear")
             except:
                 pass
 
@@ -97,7 +93,6 @@ class Game:
 
         Returns:
         array: Rows of the CSV
-        int: Seed value used to create Grid.
         """
         with open(self.save_file, "r") as csvfile:
             reader = csv.reader(csvfile)
