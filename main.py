@@ -22,7 +22,8 @@ def main():
     parser.add_argument("--res-w", "-rw", dest="res_w", default=1280, type=int, required=False, help="Width of the Game.")
     parser.add_argument("--colour-alive", "-ca", dest="c_a", default=(255, 255, 255), type=int, required=False, help="Colour for alive cells. 'R G B'", nargs='+')
     parser.add_argument("--colour-dead", "-cd", dest="c_d", default=(0, 0, 0), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
-    parser.add_argument("--e", "-cz", dest="cell_size", default=16, type=int, required=False, help="Size of a cell in pixel.")
+    parser.add_argument("--colour-background", "-cb", dest="c_b", default=(125, 125, 125), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
+    parser.add_argument("--cell_size", "-cs", dest="cell_size", default=16, type=int, required=False, help="Size of a cell in pixel.")
     parser.add_argument("--size-x", "-sx", dest="size_x", default=45, type=int, required=False, help="Height of the World.")
     parser.add_argument("--size-y", "-sy", dest="size_y", default=80, type=int, required=False, help="Width of the World.")
     parser.add_argument("--tickrate", "-t", dest="tickrate", default=30, type=float, required=False, help="Number of times the game shall update in a second (FPS).")
@@ -34,7 +35,7 @@ def main():
     args = parser.parse_args()
 
     # Create new Game
-    game = Game(args.res_h, args.res_w, tuple(args.c_a), tuple(args.c_d), args.cell_size, args.tickrate, args.save_file, args.pause_stalemate, args.pause_oscillators)
+    game = Game(args.res_h, args.res_w, tuple(args.c_a), tuple(args.c_d), tuple(args.c_b), args.cell_size, args.tickrate, args.save_file, args.pause_stalemate, args.pause_oscillators)
 
     game.setup_pygame()
 

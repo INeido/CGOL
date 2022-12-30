@@ -26,8 +26,8 @@ class World:
 
         # If 'rows' are empty, create new grid, else convert 'rows' to numpy array.
         self.create() if len(rows) == 0 else self.load_from_csv(rows)
-        self.grid_backup_0 = numpy.copy(self.grid)
-        self.backup()
+        self.grid_backup_0 = numpy.zeros_like(self.grid)
+        self.grid_backup_1 = numpy.zeros_like(self.grid)
 
     def create(self):
         """
