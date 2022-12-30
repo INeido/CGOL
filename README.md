@@ -1,4 +1,4 @@
-![](https://github.com/INeido/CGOL/img/demo0.png)
+![](https://github.com/INeido/CGOL/blob/main/img/demo0.png)
 
 # CGOL
 
@@ -8,11 +8,11 @@ A whack Conway's Game of Life implementation.
 
 Play around with cellular automata.
 
-![](https://github.com/INeido/CGOL/img/demo1.png)
+![](https://github.com/INeido/CGOL/blob/main/img/demo1.png)
 
 Draw with the mouse to birth or kill cells.
 
-![](https://github.com/INeido/CGOL/img/demo0.gif)
+![](https://github.com/INeido/CGOL/blob/main/img/demo0.gif)
 
 ## Arguments
 
