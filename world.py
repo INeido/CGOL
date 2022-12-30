@@ -100,6 +100,28 @@ class World:
         """
         return numpy.add(numpy.subtract(s_pos, firstpos), (oldoffset_x, oldoffset_y))
 
+    def extend(self):
+        """
+        ### Extend
+
+        Extends grid in every direction by one row/column.
+        """
+        self.grid = numpy.pad(self.grid, pad_width=1, mode='constant', constant_values=0)
+        self.size_x += 2
+        self.size_y += 2
+
+    def reduce(self):
+        """
+        ### Reduce
+
+        Reduces grid in every direction by one row/column.
+        """
+        if len(self.grid) < 3 or len(self.grid[0]) < 3:
+            return
+        self.grid = self.grid[1:-1, 1:-1]
+        self.size_x -= 2
+        self.size_y -= 2
+
     def get_neighbours(self):
         """
         ### Get Neighbours in Toroidal Space

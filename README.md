@@ -19,7 +19,9 @@ As the titel says.
 | --tickrate (-t) | Number of times the game shall update in a second (FPS). | 30 |
 | --seed (-s) | Seed value used to create World. | -1 |
 | --save-file (-f) | Path of the in-/output file. (Should be .csv) | './cgol.csv' |
-| --load (-l) | Boolean determining if a previous save should be loaded. | False |
+| --load (-l) | Load revious save. | False |
+| pause-stalemate (-ps) | Game pauses on a stalemate. | False |
+| pause-oscillators (-po) | Game pauses when only oscillators remain. | False |
 
 ## Controls
 
@@ -30,6 +32,14 @@ As the titel says.
 | Left Click | Births cell. |
 | Right Click | Kills cell. |
 | Middle Click | Drags screen. |
+| Middle Scroll | Zoom in and out. |
+| R | Reset game. |
+| L | Load last saved game. |
+| S | Save current game. |
+| C | Center view. |
+| Right Arrow | Forward one generation. |
+| + | Extend grid by one cell in every direction. |
+| - | Reduce grid by one cell in every direction. |
 
 ## Installing
 
