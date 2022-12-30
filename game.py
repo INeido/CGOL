@@ -4,6 +4,7 @@ Game
 """
 from world import World
 import pygame
+from pygame.locals import *
 import numpy
 import csv
 import sys
@@ -298,6 +299,9 @@ class Game:
                     # C pressed: Center view
                     if event.key == pygame.K_c:
                         self.center()
+                    # P pressed: Save screenshot
+                    if event.key == pygame.K_p:
+                        pygame.image.save(self.sur, f"img/cgol{self.world.generations}.png")
                     # + pressed: Extend grid
                     if event.key == pygame.K_PLUS:
                         self.world.extend()

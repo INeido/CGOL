@@ -1,10 +1,18 @@
+![](https://github.com/INeido/CGOL/img/demo0.png)
+
 # CGOL
 
 A whack Conway's Game of Life implementation.
 
 ## Description
 
-As the titel says.
+Play around with cellular automata.
+
+![](https://github.com/INeido/CGOL/img/demo1.png)
+
+Draw with the mouse to birth or kill cells.
+
+![](https://github.com/INeido/CGOL/img/demo0.gif)
 
 ## Arguments
 
@@ -47,6 +55,7 @@ As the titel says.
 | L | Load last saved game. |
 | S | Save current game. |
 | C | Center view. |
+| P | Save screenshot. |
 | Right Arrow | Forward one generation. |
 | + | Extend grid by one cell in every direction. |
 | - | Reduce grid by one cell in every direction. |
