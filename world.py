@@ -18,31 +18,46 @@ class World:
     :param rows: The 2D Array filled with random 0s and 1s with the last being settings.
     """
 
-    def __init__(self, size_x: int, size_y: int, seed: int, rows=[]):
+    def __init__(self, size_x: int, size_y: int, seed: int, fade_rate: float, fade_dead: float, rows=[]):
         self.size_x = size_x
         self.size_y = size_y
-        self.seed = seed
+        self.fade_rate = fade_rate
+        self.fade_dead = fade_dead
+        self.seed = numpy.random.randint(2**32 - 1) if seed == -1 else seed
         self.generations = 0
 
         # If 'rows' are empty, create new grid, else convert 'rows' to numpy array.
-        self.create() if len(rows) == 0 else self.load_from_csv(rows)
+        self.populate("seed") if len(rows) == 0 else self.load_from_csv(rows)
         self.grid_backup_0 = numpy.zeros_like(self.grid)
         self.grid_backup_1 = numpy.zeros_like(self.grid)
 
-    def create(self):
+    def populate(self, mode: str):
         """
-        ### Create World
+        ### Populate
 
-        Creates the World the game takes place in.
+        Fill 'grid' with different values.
+
+        Parameters:
+        :param mode: The mode based on which the array should be filled.
         """
-        # If '-1' create a new random seed.
-        if self.seed == -1:
-            self.seed = numpy.random.randint(2**32 - 1)
+        if mode == "seed":
+            self.grid = numpy.random.default_rng(self.seed).choice([0.0, 1.0], size=(self.size_x, self.size_y), p=[0.75, 0.25])
+        if mode == "random":
+            self.grid = numpy.random.choice([0.0, 1.0], size=(self.size_x, self.size_y), p=[0.75, 0.25])
+        elif mode == "alive":
+            self.grid = numpy.ones((self.size_x, self.size_y), dtype=float)
+        elif mode == "dead":
+            self.grid = numpy.zeros((self.size_x, self.size_y), dtype=float)
+        elif mode == "kill":
+            self.grid[self.grid == 1.0] = 0.5
+        else:
+            return False
 
-        # Create a new BitGenerator with the seed.
-        rng = numpy.random.default_rng(self.seed)
+    def find_static(self):
+        return
 
-        self.grid = rng.choice([0, 1], size=(self.size_x, self.size_y))
+    def find_oscillators(self):
+        return
 
     def load_from_csv(self, grid):
         """
@@ -53,7 +68,7 @@ class World:
         Parameters:
         :param grid: The 2D Array filled with random 0s and 1s with the last being settings.
         """
-        self.grid = numpy.array(grid[:-2], dtype=int)
+        self.grid = numpy.array(grid[:-2], dtype=float)
         self.seed = int(grid[-2][0])
         self.generations = int(grid[-1][0])
 
@@ -89,17 +104,6 @@ class World:
         """
         return numpy.array_equal(self.grid, self.grid_backup_1)
 
-    def calc_offset(self, s_pos, firstpos, oldoffset_x, oldoffset_y):
-        """
-        ### Calc Offset
-
-        Calculates new X and > offsets based on mouse position.
-
-        Returns:
-        Tuple: New X and Y offset.
-        """
-        return numpy.add(numpy.subtract(s_pos, firstpos), (oldoffset_x, oldoffset_y))
-
     def extend(self):
         """
         ### Extend
@@ -134,18 +138,21 @@ class World:
         # Create a new array the same size as 'grid'
         neighbours = numpy.zeros_like(self.grid)
 
+        # Convert faded values to zeros
+        clipped_grid = numpy.where(self.grid < 1, 0, 1)
+
         # Roll over every axis to get a new array with the number of neighbours
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
                 if not dx and not dy:
                     continue
-                neighbours += numpy.roll(numpy.roll(self.grid, dx, axis=0), dy, axis=1)
+                neighbours += numpy.roll(numpy.roll(clipped_grid, dx, axis=0), dy, axis=1)
 
         return neighbours
 
     def apply_rules(self, neighbours):
         """
-        ### Get State
+        ### Apply Rules
 
         Determines the new state of each cell for the current tick.
 
@@ -156,17 +163,21 @@ class World:
         2d Array: New state of cells.
         """
         # Create a copy of the grid to store the next generation
-        grid = numpy.copy(self.grid)
+        next_generation = numpy.copy(self.grid)
 
-        # Find the indices of cells that are currently alive or dead
+        # Find the indices of cells that are currently alive
         alive = numpy.where(self.grid == 1)
-        dead = numpy.where(self.grid == 0)
 
-        # Apply the rules to all cells
-        grid[alive] = numpy.where((neighbours[alive] == 2) | (neighbours[alive] == 3), 1, 0)
-        grid[dead] = numpy.where(neighbours[dead] == 3, 1, 0)
+        # Find the indices of cells that are currently dead
+        dead = numpy.where(self.grid < 1)
 
-        return grid
+        # Apply the rules to cells that are currently alive
+        next_generation[alive] = numpy.where((neighbours[alive] == 2) | (neighbours[alive] == 3), 1.0, self.fade_dead)
+
+        # Apply the rule to cells that are currently dead
+        next_generation[dead] = numpy.where(neighbours[dead] == 3, 1.0, self.grid[dead] - self.fade_rate)
+
+        return numpy.where(next_generation < 0.00001, 0.0, next_generation)
 
     def update(self):
         """
