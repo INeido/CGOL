@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--colour-alive", "-ca", dest="ca", default=(255, 144, 0), type=int, required=False, help="Colour for alive cells. 'R G B'", nargs='+')
     parser.add_argument("--colour-dead", "-cd", dest="cd", default=(0, 0, 0), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
     parser.add_argument("--colour-fade", "-cf", dest="cf", default=(0, 0, 0), type=int, required=False, help="Colour to fade dead cells to. 'R G B'", nargs='+')
-    parser.add_argument("--colour-background", "-cb", dest="cb", default=(125, 125, 125), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
+    parser.add_argument("--colour-background", "-cb", dest="cb", default=(16, 16, 16), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
     parser.add_argument("--cell_size", "-cs", dest="cs", default=16, type=int, required=False, help="Size of a cell in pixel.")
     parser.add_argument("--size-x", "-sx", dest="sx", default=45, type=int, required=False, help="Height of the World.")
     parser.add_argument("--size-y", "-sy", dest="sy", default=80, type=int, required=False, help="Width of the World.")

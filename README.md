@@ -23,7 +23,7 @@ Draw with the mouse to birth or kill cells.
 | --colour-alive (-ca) | Colour for alive cells. 'R G B' | 255, 144, 0 |
 | --colour-dead (-cd) | Colour for dead cells. 'R G B' | 0, 0, 0 |
 | --colour-fade (-cf) | Colour to fade dead cells to. 'R G B' | 0, 0, 0 |
-| --colour-background (-cb) | Colour of background. 'R G B' | 125, 125, 125 |
+| --colour-background (-cb) | Colour of background. 'R G B' | 16, 16, 16 |
 | --cell-size (-cs) | Size of a cell in pixel | 16 |
 | --size-x (-sx) | Height of the World. | 45 |
 | --size-y (-sy) | Width of the World. | 80 |

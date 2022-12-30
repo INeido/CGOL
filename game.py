@@ -63,7 +63,7 @@ class Game:
         """
         ### Get Borders
 
-        Gets the visible edges of the grid. 
+        Gets the visible edges of the grid.
         """
         start_x = max(0, int(-self.offset_x / self.cell_size))
         end_x = min(self.world.size_y, self.world.size_y - int(self.offset_x / self.cell_size) - self.world.size_y - int(-self.res_w / self.cell_size))
@@ -229,7 +229,7 @@ class Game:
             # Calculate coordinates of normal cells
             x = (point1[1]-self.offset_y)//self.cell_size
             y = (point1[0]-self.offset_x)//self.cell_size
-            return x.astype(int), y.astype(int)
+            return int(x), int(y)
 
     def game_loop(self, pause=False):
         """
@@ -350,12 +350,14 @@ class Game:
 
             # Interpolate to prevent dotted line
             if m_down:
-                try:
-                    x, y = self.interpolate(prev_pos, curr_pos)
-                    self.world.grid[x, y] = dragval
-                    prev_pos = curr_pos
-                except:
-                    pass
+                x, y = self.interpolate(prev_pos, curr_pos)
+                if isinstance(x, int) and isinstance(y, int):
+                    if 0 <= x < self.world.size_x and 0 <= y < self.world.size_y:
+                        self.world.grid[x, y] = dragval or (0.5 if self.world.grid[x, y] == 1.0 and not dragval else self.world.grid[x, y])
+                elif min(x) >= 0 and max(x) < self.world.size_x and min(y) >= 0 and max(y) < self.world.size_y:
+                    for xc, yc in zip(x, y):
+                        self.world.grid[xc, yc] = dragval or (0.5 if self.world.grid[xc, yc] == 1.0 and not dragval else self.world.grid[xc, yc])
+                prev_pos = curr_pos
 
             # Break out of main loop
             if not is_looping:
