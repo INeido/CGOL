@@ -198,7 +198,7 @@ class Game:
         Interpolates between two points.
 
         Returns:
-        tuple: Coordinates of interpolated cells
+        tuple or int: Coordinates of interpolated cells
         """
         # Calculate distance between previous and current position
         distance = numpy.linalg.norm(numpy.array(point1) - numpy.array(point0))
@@ -214,10 +214,10 @@ class Game:
 
             return x.astype(int), y.astype(int)
         else:
-
             # Calculate coordinates of normal cells
             x = (point1[1]-self.offset_y)//self.cell_size
             y = (point1[0]-self.offset_x)//self.cell_size
+
             return int(x), int(y)
 
     def game_loop(self, pause=False):
@@ -229,29 +229,25 @@ class Game:
         # Flags
         is_looping = True
         running = not pause
-        exit = False
-        m_down = False
+        draw = False
+        drag = False
         prev_pos = None
-        first_pos = 0
 
         while True:
-            # Draw before we start updating the cells
-            self.draw()
+            self.clock.tick(self.tickrate)
 
             # Save mouse position
             curr_pos = pygame.mouse.get_pos()
 
             # Screen drag
-            if first_pos != 0:
-                self.offset_x, self.offset_y = numpy.add(numpy.subtract(curr_pos, first_pos), (oldoffset_x, oldoffset_y))
+            if drag and prev_pos != None:
+                self.offset_x, self.offset_y = numpy.add(numpy.subtract(curr_pos, prev_pos), (oldoffset_x, oldoffset_y))
                 self.update_surface()
 
+            # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    is_looping = False
-                    print("\nGame stopped. Reason: Pygame closed.")
-                    break
-
+                    self.shutdown()
                 # Key events
                 elif event.type == pygame.KEYDOWN:
                     # RETURN pressed: Pause game
@@ -259,9 +255,7 @@ class Game:
                         running = not running
                     # ESCAPE pressed: Close game
                     if event.key == pygame.K_ESCAPE:
-                        is_looping = False
-                        print("\nGame stopped. Reason: Pygame closed.")
-                        break
+                        self.shutdown()
                     # Right Arrow pressed: Forward one generation
                     if event.key == pygame.K_RIGHT:
                         self.calc_generation()
@@ -283,6 +277,7 @@ class Game:
                     # L pressed: Load last saved game
                     if event.key == pygame.K_l:
                         self.world.load_from_csv(self.load_grid())
+                        self.update_surface()
                     # S pressed: Save current game
                     if event.key == pygame.K_s:
                         self.save_grid()
@@ -306,24 +301,27 @@ class Game:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Left/Right Click: Draw
                     if event.button == 1 or event.button == 3:
-                        m_down = True
+                        oldoffset_x, oldoffset_y = self.offset_x, self.offset_y
                         prev_pos = curr_pos
+                        draw = True
                     if event.button == 1:
-                        dragval = 1
+                        draw_color = 1
                     if event.button == 3:
-                        dragval = 0
+                        draw_color = 0
                     # Middle Mouse: Drag screen
                     if event.button == 2:
-                        oldoffset_x = self.offset_x
-                        oldoffset_y = self.offset_y
-                        first_pos = curr_pos
+                        oldoffset_x, oldoffset_y = self.offset_x, self.offset_y
+                        prev_pos = curr_pos
+                        drag = True
                 elif event.type == pygame.MOUSEBUTTONUP:
                     # Left/Right Click: Draw
                     if event.button == 1 or event.button == 3:
-                        m_down = False
+                        prev_pos = None
+                        draw = False
                     # Middle Mouse: Drag screen
                     if event.button == 2:
-                        first_pos = 0
+                        prev_pos = None
+                        drag = False
 
                 # Zoom
                 elif event.type == pygame.MOUSEWHEEL:
@@ -332,7 +330,6 @@ class Game:
                         self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
                         self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
                         self.update_surface()
-
                     elif event.y == -1 and self.cell_size > 1:
                         self.cell_size /= 2
                         self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) / 2
@@ -340,31 +337,29 @@ class Game:
                         self.update_surface()
 
             # Interpolate to prevent dotted line
-            if m_down:
+            if draw and prev_pos != None:
                 x, y = self.interpolate(prev_pos, curr_pos)
                 if isinstance(x, int) and isinstance(y, int):
                     if 0 <= x < self.world.size_x and 0 <= y < self.world.size_y:
-                        self.world.grid[x, y] = dragval or (0.5 if self.world.grid[x, y] == 1.0 and not dragval else self.world.grid[x, y])
+                        self.world.grid[x, y] = draw_color or (0.5 if self.world.grid[x, y] == 1.0 and not draw_color else self.world.grid[x, y])
                 elif min(x) >= 0 and max(x) < self.world.size_x and min(y) >= 0 and max(y) < self.world.size_y:
                     for xc, yc in zip(x, y):
-                        self.world.grid[xc, yc] = dragval or (0.5 if self.world.grid[xc, yc] == 1.0 and not dragval else self.world.grid[xc, yc])
+                        self.world.grid[xc, yc] = draw_color or (0.5 if self.world.grid[xc, yc] == 1.0 and not draw_color else self.world.grid[xc, yc])
                 prev_pos = curr_pos
 
             # Break out of main loop
             if not is_looping:
                 break
 
-            # Pause game
-            if not running or m_down:
+            # Draw before we start updating the cells
+            self.draw()
+
+            # Skip over generation to pause game
+            if not running or draw:
                 continue
 
-            try:
-                self.calc_generation()
-            except (KeyboardInterrupt):
-                print("\nGame stopped. Reason: KeyboardInterrupt.")
-                break
-
-            self.clock.tick(self.tickrate)
+            # Calculate the next generation
+            self.calc_generation()
 
         self.shutdown()
 
