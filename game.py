@@ -3,8 +3,8 @@ Game
 ====
 """
 from world import World
-import pygame
 from pygame.locals import *
+import pygame
 import numpy
 import csv
 import sys
@@ -49,14 +49,9 @@ class Game:
 
         Creates and configures pygame instance.
         """
-        try:
-            os.system("cls" if os.name in ("nt", "dos") else "clear")
-        except:
-            pass
         pygame.init()
-
-        self.dis = pygame.display.set_mode((self.res_w, self.res_h), 0, 8)
         pygame.display.set_caption("CGOL", "hardware")
+        self.dis = pygame.display.set_mode((self.res_w, self.res_h), 0, 8)
         self.clock = pygame.time.Clock()
 
     def get_borders(self):
@@ -65,12 +60,10 @@ class Game:
 
         Gets the visible edges of the grid.
         """
-        start_x = max(0, int(-self.offset_x / self.cell_size))
-        end_x = min(self.world.size_y, self.world.size_y - int(self.offset_x / self.cell_size) - self.world.size_y - int(-self.res_w / self.cell_size))
-        start_y = max(0, int(-self.offset_y / self.cell_size))
-        end_y = min(self.world.size_x, self.world.size_x - int(self.offset_y / self.cell_size) - self.world.size_x - int(-self.res_h / self.cell_size))
-
-        return start_x, end_x, start_y, end_y
+        self.vis_west = max(0, int((-self.offset_x) / self.cell_size))
+        self.vis_east = min(self.world.size_y, self.world.size_y - int(self.offset_x / self.cell_size) - self.world.size_y - int(-self.res_w / self.cell_size) + 1)
+        self.vis_north = max(0, int((-self.offset_y) / self.cell_size))
+        self.vis_south = min(self.world.size_x, self.world.size_x - int(self.offset_y / self.cell_size) - self.world.size_x - int(-self.res_h / self.cell_size) + 1)
 
     def draw(self):
         """
@@ -82,21 +75,14 @@ class Game:
         self.dis.fill(self.c_b)
         self.sur.fill(self.c_d)
 
-        # Calculate range of cells to draw
-        start_x, end_x, start_y, end_y = self.get_borders()
-
         # Update surface with changed pixels
-        for x in range(start_y, end_y):
-            for y in range(start_x, end_x):
-                # If the cell has changed state, draw it FIXME
-                # if self.world.grid[x][y] != self.world.grid_backup_0[x][y]:
+        for x in range(self.vis_north, self.vis_south):
+            for y in range(self.vis_west, self.vis_east):
                 fade_value = self.world.grid[x][y]
                 if fade_value > 0:
                     color = pygame.Color(self.c_f)
                     new_color = color.lerp(self.c_a, fade_value)
                     pygame.draw.rect(self.sur, new_color, pygame.Rect(y*self.cell_size, x*self.cell_size, self.cell_size, self.cell_size))
-                #    else:
-                #        pygame.draw.rect(self.sur, self.c_d, pygame.Rect(y*self.cell_size, x*self.cell_size, self.cell_size, self.cell_size))
 
         # Draw surface in display
         self.dis.blit(self.sur, (self.offset_x, self.offset_y))
@@ -104,6 +90,9 @@ class Game:
         pygame.display.flip()
 
     def update_surface(self):
+        # Calculate range of cells to draw
+        self.get_borders()
+
         self.sur = pygame.Surface((self.world.size_y*self.cell_size, self.world.size_x*self.cell_size))
 
     def center(self):
@@ -255,6 +244,7 @@ class Game:
             # Screen drag
             if first_pos != 0:
                 self.offset_x, self.offset_y = numpy.add(numpy.subtract(curr_pos, first_pos), (oldoffset_x, oldoffset_y))
+                self.update_surface()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -299,6 +289,7 @@ class Game:
                     # C pressed: Center view
                     if event.key == pygame.K_c:
                         self.center()
+                        self.update_surface()
                     # P pressed: Save screenshot
                     if event.key == pygame.K_p:
                         pygame.image.save(self.sur, f"img/cgol{self.world.generations}.png")
@@ -334,18 +325,18 @@ class Game:
                     if event.button == 2:
                         first_pos = 0
 
-                # Zoom TODO: Figure out the offset calculation
+                # Zoom
                 elif event.type == pygame.MOUSEWHEEL:
-                    if event.y == 1 and self.cell_size < 16:
+                    if event.y == 1 and self.cell_size < 128:
                         self.cell_size *= 2
-                        offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
-                        offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
+                        self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
+                        self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
                         self.update_surface()
 
                     elif event.y == -1 and self.cell_size > 1:
                         self.cell_size /= 2
-                        offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
-                        offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
+                        self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) / 2
+                        self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) / 2
                         self.update_surface()
 
             # Interpolate to prevent dotted line
