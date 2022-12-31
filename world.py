@@ -31,7 +31,7 @@ class World:
         self.grid_backup_0 = numpy.zeros_like(self.grid)
         self.grid_backup_1 = numpy.zeros_like(self.grid)
 
-    def populate(self, mode: str):
+    def populate(self, mode: str, ):
         """
         ### Populate
 
@@ -49,7 +49,7 @@ class World:
         elif mode == "dead":
             self.grid = numpy.zeros((self.size_x, self.size_y), dtype=float)
         elif mode == "kill":
-            self.grid[self.grid == 1.0] = 0.5
+            self.grid[self.grid == 1.0] = self.fade_dead
         else:
             return False
 
