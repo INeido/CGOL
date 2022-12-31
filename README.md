@@ -1,18 +1,19 @@
-![](https://github.com/INeido/CGOL/blob/main/img/demo0.png)
+# CGOL &middot; [![GitHub License](https://img.shields.io/github/license/INeido/CGOL?style=for-the-badge)](https://github.com/INeido/CGOL/blob/main/LICENSE) [![PyPI](https://img.shields.io/pypi/v/CGOL?style=for-the-badge)](https://pypi.org/project/CGOL/) [![GitHub release](https://img.shields.io/github/v/release/INeido/CGOL?label=GitHub&style=for-the-badge)](https://github.com/INeido/CGOL/releases)
 
-# CGOL
 
 A whack Conway's Game of Life implementation.
+
+![](https://github.com/INeido/CGOL/blob/main/img/demo0.png?raw=true)
 
 ## Description
 
 Play around with cellular automata.
 
-![](https://github.com/INeido/CGOL/blob/main/img/demo1.png)
+![](https://github.com/INeido/CGOL/blob/main/img/demo1.png?raw=true)
 
 Draw with the mouse to birth or kill cells.
 
-![](https://github.com/INeido/CGOL/blob/main/img/demo0.gif)
+![](https://github.com/INeido/CGOL/blob/main/img/demo0.gif?raw=true)
 
 ## Arguments
 
@@ -67,8 +68,10 @@ You can install the code and download the requirements with the following comman
 git clone https://github.com/INeido/CGOL
 cd CGOL
 pip install -r requirements.txt
+python ./src/cgol/__main__.py
 ```
-Finally run the code with.
+
+Alternatively, install using pip
 ```bash
-python main.py
+pip install cgol
 ```
