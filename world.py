@@ -53,12 +53,6 @@ class World:
         else:
             return False
 
-    def find_static(self):
-        return
-
-    def find_oscillators(self):
-        return
-
     def load_from_csv(self, grid):
         """
         ### Load from CSV
