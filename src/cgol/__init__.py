@@ -1,4 +1,4 @@
-from .game import Game
+from game import Game
 import argparse
 
 
@@ -11,10 +11,10 @@ def main():
     parser.add_argument("--color-dead", "-cd", dest="cd", default=(0, 0, 0), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
     parser.add_argument("--color-fade", "-cf", dest="cf", default=(0, 0, 0), type=int, required=False, help="Colour to fade dead cells to. 'R G B'", nargs='+')
     parser.add_argument("--color-background", "-cb", dest="cb", default=(16, 16, 16), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
-    parser.add_argument("--cell_size", "-cs", dest="cs", default=16, type=int, required=False, help="Size of a cell in pixel.")
-    parser.add_argument("--size-x", "-sx", dest="sx", default=45, type=int, required=False, help="Height of the World.")
-    parser.add_argument("--size-y", "-sy", dest="sy", default=80, type=int, required=False, help="Width of the World.")
-    parser.add_argument("--tickrate", "-t", dest="t", default=30, type=float, required=False, help="Number of times the game shall update in a second (FPS).")
+    parser.add_argument("--cell_size", "-cs", dest="cs", default=8, type=int, required=False, help="Size of a cell in pixel.")
+    parser.add_argument("--size-x", "-sx", dest="sx", default=90, type=int, required=False, help="Height of the World.")
+    parser.add_argument("--size-y", "-sy", dest="sy", default=160, type=int, required=False, help="Width of the World.")
+    parser.add_argument("--tickrate", "-t", dest="t", default=60, type=float, required=False, help="Number of times the game shall update in a second (FPS).")
     parser.add_argument("--seed", "-s", dest="s", default=-1, type=int, required=False, help="Seed value used to create World.")
     parser.add_argument("--save-file", "-f", dest="f", default="./cgol.csv", type=str, required=False, help="Path of the in-/output file. (Should be .csv)")
     parser.add_argument("--load", "-l", dest="l", default=False, type=bool, required=False, help="Load revious save.")

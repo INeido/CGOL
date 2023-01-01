@@ -104,10 +104,10 @@ options:
 | --colour-dead (-cd) | Colour for dead cells. 'R G B' | 0, 0, 0 |
 | --colour-fade (-cf) | Colour to fade dead cells to. 'R G B' | 0, 0, 0 |
 | --colour-background (-cb) | Colour of background. 'R G B' | 16, 16, 16 |
-| --cell-size (-cs) | Size of a cell in pixel | 16 |
-| --size-x (-sx) | Height of the World. | 45 |
-| --size-y (-sy) | Width of the World. | 80 |
-| --tickrate (-t) | Number of times the game shall update in a second (FPS). | 30 |
+| --cell-size (-cs) | Size of a cell in pixel | 8 |
+| --size-x (-sx) | Height of the World. | 90 |
+| --size-y (-sy) | Width of the World. | 160 |
+| --tickrate (-t) | Number of times the game shall update in a second (FPS). | 60 |
 | --seed (-s) | Seed value used to create World. | -1 |
 | --save-file (-f) | Path of the in-/output file. (Should be .csv) | './cgol.csv' |
 | --load (-l) | Load revious save. | False |

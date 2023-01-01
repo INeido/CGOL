@@ -124,7 +124,7 @@ class World:
         Counts the number of alive neighbors of a cell inside a toroidal space. Neighbours off the edge will wrap around.
 
         :return: The number of neighbors of a cell.
-        :rtype: np.array
+        :rtype: np.array int
         """
         # Create a new array the same size as 'grid'
         neighbors = numpy.zeros_like(self.grid)
@@ -141,16 +141,35 @@ class World:
 
         return neighbors
 
-    def apply_rules(self, neighbors):
+        '''
+        Potentially faster to bit shift? 1kx1k grid takes 0.01-0.02, just like numpy.roll
+
+        # Shift grid left and right, and add to neighbors
+        neighbors += numpy.bitwise_or(numpy.left_shift(clipped_grid, 1), numpy.right_shift(clipped_grid, 1))
+        # Shift grid up and down, and add to neighbors
+        neighbors += numpy.bitwise_or(numpy.left_shift(clipped_grid, self.grid.shape[0]), numpy.right_shift(clipped_grid, self.grid.shape[0]))
+        # Shift grid diagonally and add to neighbors
+        neighbors += numpy.bitwise_or(numpy.left_shift(clipped_grid, self.grid.shape[0]+1), numpy.right_shift(clipped_grid, self.grid.shape[0]+1))
+        neighbors += numpy.bitwise_or(numpy.left_shift(clipped_grid, self.grid.shape[0]-1), numpy.right_shift(clipped_grid, self.grid.shape[0]-1))
+
+        return neighbors
+        '''
+
+    def apply_rules_fade(self, neighbors):
         """Apply Rules
         ====
 
         Determines the new state of each cell for the current tick.
 
+        Because of the fade implementation, the values are stored as floats.
+        1.0 = alive
+        < 1.0 || > 0.0 = dead and fading
+        0.0 == dead
+
         :param np.array neighbors: The number of neighbors for each cell.
 
         :return: New state of cells.
-        :rtype: np.array
+        :rtype: np.array float
         """
         # Create a copy of the grid to store the next generation
         next_generation = numpy.copy(self.grid)
@@ -169,6 +188,34 @@ class World:
 
         return numpy.where(next_generation < 0.00001, 0.0, next_generation)
 
+    def apply_rules(self, neighbors):
+        """Apply Rules
+        ====
+
+        Determines the new state of each cell for the current tick.
+
+        :param np.array neighbors: The number of neighbors for each cell.
+
+        :return: New state of cells.
+        :rtype: np.array int
+        """
+        # Create a copy of the grid to store the next generation
+        next_generation = numpy.copy(self.grid)
+
+        # Find the indices of cells that are currently alive
+        alive = numpy.where(self.grid == 1)
+
+        # Find the indices of cells that are currently dead
+        dead = numpy.where(self.grid == 0)
+
+        # Apply the rules to cells that are currently alive
+        next_generation[alive] = numpy.where((neighbors[alive] == 2) | (neighbors[alive] == 3), 1, 0)
+
+        # Apply the rule to cells that are currently dead
+        next_generation[dead] = numpy.where(neighbors[dead] == 3, 1, 0)
+
+        return next_generation
+
     def update(self):
         """Update World
         ====
@@ -179,4 +226,4 @@ class World:
         neighbors = self.get_neighbors()
 
         # Apply rules
-        self.grid = self.apply_rules(neighbors)
+        self.grid = self.apply_rules_fade(neighbors)
