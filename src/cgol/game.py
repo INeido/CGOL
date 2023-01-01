@@ -1,8 +1,17 @@
 """
-Game
+CGOL
 ====
+A Conway's Game of Life implementation using numpy and pygame.
+
+Rules of Conway's Game of Life:
+1. Any live cell with two or three live neighbors survives.
+2. Any dead cell with three live neighbors becomes a live cell.
+3. All other live cells die in the next generation. Similarly, all other dead cells stay dead.
+
+Github Repo:
+https://github.com/INeido/CGOL
 """
-from world import World
+from .world import World
 from pygame.locals import *
 import pygame
 import numpy
@@ -12,22 +21,21 @@ import os
 
 
 class Game:
-    """
-    ### Game
+    """Game
+    ====
 
     Contains the functions needed to run the game.
 
-    Parameters:
-    :param res_h: Height of the Game.
-    :param res_w: Width of the Game.
-    :param c_a: Colour for alive cells.
-    :param c_d: Colour for dead cells.
-    :param c_b: Colour for background.
-    :param cell_size: Size of a cell in pixel.
-    :param tickrate: Number of times the game shall update in a second (FPS).
-    :param save_file: Path of the in-/output file.
-    :param pause_stalemate: Game pauses on a stalemate.
-    :param pause_oscillators: Game pauses when only oscillators remain.
+    :param int res_h: Height of the Game.
+    :param int res_w: Width of the Game.
+    :param tuple c_a: Colour for alive cells.
+    :param tuple c_d: Colour for dead cells.
+    :param tuple c_b: Colour for background.
+    :param int cell_size: Size of a cell in pixel.
+    :param int tickrate: Number of times the game shall update in a second (FPS).
+    :param str save_file: Path of the in-/output file.
+    :param bool pause_stalemate: Game pauses on a stalemate.
+    :param bool pause_oscillators: Game pauses when only oscillators remain.
     """
 
     def __init__(self, res_h: int, res_w: int, c_a: tuple, c_d: tuple, c_f: tuple, c_b: tuple, cell_size: int, tickrate: int, save_file: str, pause_stalemate: bool, pause_oscillators: bool):
@@ -44,8 +52,8 @@ class Game:
         self.pause_oscillators = pause_oscillators
 
     def setup_pygame(self):
-        """
-        ### Setup Pygame
+        """Setup Pygame
+        ====
 
         Creates and configures pygame instance.
         """
@@ -54,9 +62,23 @@ class Game:
         self.dis = pygame.display.set_mode((self.res_w, self.res_h), 0, 8)
         self.clock = pygame.time.Clock()
 
-    def get_borders(self):
+    def get_save_path(self):
+        """Get Save Path
+        ====
+
+        Makes sure the 'cgol/images' folder exists and return its path.
+
+        :return: The home directory of the user appended with '/cgol/images'.capitalize()
+        :rtype: string
         """
-        ### Get Borders
+        path = os.path.expanduser("~") + "/cgol/images/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+
+    def get_borders(self):
+        """Get Borders
+        ====
 
         Gets the visible edges of the grid.
         """
@@ -66,8 +88,8 @@ class Game:
         self.vis_south = min(self.world.size_x, self.world.size_x - int(self.offset_y / self.cell_size) - self.world.size_x - int(-self.res_h / self.cell_size) + 1)
 
     def draw(self):
-        """
-        ### Draw Game
+        """Draw Game
+        ====
 
         Draws the current World.
         """
@@ -96,8 +118,8 @@ class Game:
         self.sur = pygame.Surface((self.world.size_y*self.cell_size, self.world.size_x*self.cell_size))
 
     def center(self):
-        """
-        ### Center
+        """Center
+        ====
 
         Updates offsets so that grid is centered.
         """
@@ -105,16 +127,16 @@ class Game:
         self.offset_y = (self.res_h / 2) - (self.world.size_x / 2 * self.cell_size)
 
     def create_world(self, size_x: int, size_y: int, seed: int, load: bool, fr, fd):
-        """
-        ### Create World
+        """Create World
+        ====
 
         Creates a new World Object.
 
         Parameters:
-        :param size_x: Height of the Grid.
-        :param size_y: Width of the Grid.
-        :param seed: Seed for the array generation. Default is random (-1).
-        :param load: Boolean indicating whether the last game should be loaded.
+        :param int size_x: Height of the Grid.
+        :param int size_y: Width of the Grid.
+        :param int seed: Seed for the array generation. Default is random (-1).
+        :param bool load: Boolean indicating whether the last game should be loaded.
         """
         if load:
             try:
@@ -132,8 +154,8 @@ class Game:
         self.update_surface()
 
     def save_grid(self):
-        """
-        ### Save Grid
+        """Save Grid
+        ====
 
         Saves the Grid into a CSV file.
         """
@@ -154,21 +176,21 @@ class Game:
             print("Couldn't save file.", e)
 
     def load_grid(self):
-        """
-        ### Load Grid
+        """Load Grid
+        ====
 
         Loads the Grid from a CSV file.
 
-        Returns:
-        array: Rows of the CSV
+        :return: Rows of the CSV.
+        :rtype: array
         """
         with open(self.save_file, "r") as csvfile:
             reader = csv.reader(csvfile)
             return [row for row in reader]
 
     def calc_generation(self):
-        """
-        ### Calc Generation
+        """Calc Generation
+        ====
 
         Calculates and renders the cells.
         """
@@ -192,13 +214,13 @@ class Game:
             self.game_loop(pause=True)
 
     def interpolate(self, point0, point1):
-        """
-        ### Interpolate
+        """Interpolate
+        ====
 
         Interpolates between two points.
 
-        Returns:
-        tuple or int: Coordinates of interpolated cells
+        :return: Coordinates of interpolated cells.
+        :rtype: tuple or int
         """
         # Calculate distance between previous and current position
         distance = numpy.linalg.norm(numpy.array(point1) - numpy.array(point0))
@@ -221,8 +243,8 @@ class Game:
             return int(x), int(y)
 
     def game_loop(self, pause=False):
-        """
-        ### Game Loop
+        """Game Loop
+        ====
 
         The main loop that runs the game.
         """
@@ -287,7 +309,7 @@ class Game:
                         self.update_surface()
                     # P pressed: Save screenshot
                     if event.key == pygame.K_p:
-                        pygame.image.save(self.sur, f"img/cgol{self.world.generations}.png")
+                        pygame.image.save(self.sur, f"{self.get_save_path() + str(self.world.generations)}.png")
                     # + pressed: Extend grid
                     if event.key == pygame.K_PLUS:
                         self.world.extend()

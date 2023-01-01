@@ -6,16 +6,15 @@ import numpy
 
 
 class World:
-    """
-    ### World
+    """World
+    ====
 
     Contains various functions to store and update a grid with Cells.
 
-    Parameters:
-    :param size_x: Height of the World.
-    :param size_y: Width of the World.
-    :param seed: Seed for the array generation. Default is random.
-    :param rows: The 2D Array filled with random 0s and 1s with the last being settings.
+    :param int size_x: Height of the World.
+    :param int size_y: Width of the World.
+    :param int seed: Seed for the array generation. Default is random.
+    :param array rows: The 2D Array filled with random 0s and 1s with the last being settings.
     """
 
     def __init__(self, size_x: int, size_y: int, seed: int, fade_rate: float, fade_dead: float, rows=[]):
@@ -32,13 +31,12 @@ class World:
         self.grid_backup_1 = numpy.zeros_like(self.grid)
 
     def populate(self, mode: str, ):
-        """
-        ### Populate
+        """Populate
+        ====
 
         Fill 'grid' with different values.
 
-        Parameters:
-        :param mode: The mode based on which the array should be filled.
+        :param bool mode: The mode based on which the array should be filled.
         """
         if mode == "seed":
             self.grid = numpy.random.default_rng(self.seed).choice([0.0, 1.0], size=(self.size_x, self.size_y), p=[0.75, 0.25])
@@ -54,21 +52,20 @@ class World:
             return False
 
     def load_from_csv(self, grid):
-        """
-        ### Load from CSV
+        """Load from CSV
+        ====
 
         Loads data from CSV file.
 
-        Parameters:
-        :param grid: The 2D Array filled with random 0s and 1s with the last being settings.
+        :param array grid: The 2D Array filled with random 0s and 1s with the last being settings.
         """
         self.grid = numpy.array(grid[:-2], dtype=float)
         self.seed = int(grid[-2][0])
         self.generations = int(grid[-1][0])
 
     def backup(self):
-        """
-        ### Backup
+        """Backup
+        ====
 
         Creates a shallow copy of the grid.
         """
@@ -77,30 +74,30 @@ class World:
         self.grid_backup_1 = numpy.copy(temp)
 
     def check_stalemate(self):
-        """
-        ### Check Stalemate
+        """Check Stalemate
+        ====
 
         Compares the last backup with the current grid to see of it changed.
 
-        Returns:
-        Boolean: Is the backup the same as the current grid?
+        :return: Is the backup the same as the current grid?
+        :rtype: bool
         """
         return numpy.array_equal(self.grid, self.grid_backup_0)
 
     def check_oscillators(self):
-        """
-        ### Compare Backup
+        """Compare Backup
+        ====
 
         Compares the second last backup with the current grid to see of it changed.
 
-        Returns:
-        Boolean: Is the second last backup the same as the current grid?
+        :return: Is the second last backup the same as the current grid?
+        :rtype: bool
         """
         return numpy.array_equal(self.grid, self.grid_backup_1)
 
     def extend(self):
-        """
-        ### Extend
+        """Extend
+        ====
 
         Extends grid in every direction by one row/column.
         """
@@ -109,8 +106,8 @@ class World:
         self.size_y += 2
 
     def reduce(self):
-        """
-        ### Reduce
+        """Reduce
+        ====
 
         Reduces grid in every direction by one row/column.
         """
@@ -120,41 +117,40 @@ class World:
         self.size_x -= 2
         self.size_y -= 2
 
-    def get_neighbours(self):
-        """
-        ### Get Neighbours in Toroidal Space
+    def get_neighbors(self):
+        """Get Neighbours in Toroidal Space
+        ====
 
-        Counts the number of alive neighbours of a cell inside a toroidal space. Neighbours off the edge will wrap around.
+        Counts the number of alive neighbors of a cell inside a toroidal space. Neighbours off the edge will wrap around.
 
-        Returns:
-        2d Array: The number of neighbours of a cell.
+        :return: The number of neighbors of a cell.
+        :rtype: np.array
         """
         # Create a new array the same size as 'grid'
-        neighbours = numpy.zeros_like(self.grid)
+        neighbors = numpy.zeros_like(self.grid)
 
         # Convert faded values to zeros
         clipped_grid = numpy.where(self.grid < 1, 0, 1)
 
-        # Roll over every axis to get a new array with the number of neighbours
+        # Roll over every axis to get a new array with the number of neighbors
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
                 if not dx and not dy:
                     continue
-                neighbours += numpy.roll(numpy.roll(clipped_grid, dx, axis=0), dy, axis=1)
+                neighbors += numpy.roll(numpy.roll(clipped_grid, dx, axis=0), dy, axis=1)
 
-        return neighbours
+        return neighbors
 
-    def apply_rules(self, neighbours):
-        """
-        ### Apply Rules
+    def apply_rules(self, neighbors):
+        """Apply Rules
+        ====
 
         Determines the new state of each cell for the current tick.
 
-        Parameters:
-        :param neighbours: The number of neighbours for each cell.
+        :param np.array neighbors: The number of neighbors for each cell.
 
-        Returns:
-        2d Array: New state of cells.
+        :return: New state of cells.
+        :rtype: np.array
         """
         # Create a copy of the grid to store the next generation
         next_generation = numpy.copy(self.grid)
@@ -166,21 +162,21 @@ class World:
         dead = numpy.where(self.grid < 1)
 
         # Apply the rules to cells that are currently alive
-        next_generation[alive] = numpy.where((neighbours[alive] == 2) | (neighbours[alive] == 3), 1.0, self.fade_dead)
+        next_generation[alive] = numpy.where((neighbors[alive] == 2) | (neighbors[alive] == 3), 1.0, self.fade_dead)
 
         # Apply the rule to cells that are currently dead
-        next_generation[dead] = numpy.where(neighbours[dead] == 3, 1.0, self.grid[dead] - self.fade_rate)
+        next_generation[dead] = numpy.where(neighbors[dead] == 3, 1.0, self.grid[dead] - self.fade_rate)
 
         return numpy.where(next_generation < 0.00001, 0.0, next_generation)
 
     def update(self):
-        """
-        ### Update World
+        """Update World
+        ====
 
         Updates the state of the cells in the world according to the rules of the Game of Life.
         """
-        # Get neighbours
-        neighbours = self.get_neighbours()
+        # Get neighbors
+        neighbors = self.get_neighbors()
 
         # Apply rules
-        self.grid = self.apply_rules(neighbours)
+        self.grid = self.apply_rules(neighbors)

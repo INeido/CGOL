@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "CGOL"
+version = "0.8.0"
+description = "A whack Conway's Game of Life implementation."
+readme = "README.md"
+requires-python = ">=3"
+license = {text = "GPL-3"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Games/Entertainment :: Simulation",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+]
+authors = [
+    {name = "Neido", email = "reg@neido.de"}
+]
+maintainers = [
+    {name = "Neido", email = "reg@neido.de"}
+]
+dependencies = [
+    "pygame",
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/INeido/CGOL/"
+Repository = "https://github.com/INeido/CGOL/"
+Issues = "https://github.com/INeido/CGOL/issues"
+
+[project.scripts]
+cgol = "cgol.__main__:main"
