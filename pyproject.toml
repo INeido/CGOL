@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CGOL"
-version = "0.9.0"
+version = "0.9.1"
 description = "A whack Conway's Game of Life implementation."
 readme = "README.md"
 requires-python = ">=3"
