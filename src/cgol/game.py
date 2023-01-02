@@ -117,10 +117,19 @@ class Game:
         self.dis.fill(self.color_background)
 
         # Get the slice of self.world.grid that is actually visible and has to be rendered.
-        colors = self.world.grid[self.vis_west:self.vis_east, self.vis_north:self.vis_south]
+        colors = self.world.grid[self.vis_west:self.vis_east, self.vis_north:self.vis_south][:, :, numpy.newaxis]
 
-        # Set fade colors using interpolation TODO: Is it faster to not interpolate 0s and 1s?
-        colors = (self.color_fade + (self.color_alive - self.color_fade) * colors[:, :, numpy.newaxis]).clip(0, 255).astype(int)
+        color_dead_arr = numpy.full((colors.shape[0], colors.shape[1], 3), self.color_dead)
+        color_alive_arr = numpy.full((colors.shape[0], colors.shape[1], 3), self.color_alive)
+
+        # Set static colors
+        colors = numpy.where(colors == 0, color_dead_arr, colors)
+        colors = numpy.where(colors == 1, color_alive_arr, colors)
+        # Set fading colors using interpolation
+        colors = numpy.where((colors > 0) & (colors < 1), (self.color_fade + (self.color_alive - self.color_fade) * colors), colors)
+
+        # Clip final array
+        colors = colors.clip(0, 255).astype(int)
 
         # Scale the array in both axis
         colors = numpy.repeat(numpy.repeat(colors, self.cell_size, axis=1), self.cell_size, axis=0)

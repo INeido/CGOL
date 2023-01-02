@@ -36,13 +36,13 @@ Here are some examples.
 
 Start a simulation with the default setting but with a custom seed.
 ```bash
-cgol -s 42
+cgol -se 42
 ```
 ![](https://github.com/INeido/CGOL/blob/main/samples/demo1.gif?raw=true)
 
 Change grid size, cell size and fade color.
 ```bash
-cgol -cf 130 20 0 -cs 8 -sx 90 -sy 160
+cgol -cf 130 20 0 -cs 8 -gh 90 -gw 160
 ```
 ![](https://github.com/INeido/CGOL/blob/main/samples/demo2.gif?raw=true)
 
@@ -60,61 +60,51 @@ Draw with the mouse to birth or kill cells.
 ## Arguments
 
 ```
-usage: CGOL [-h] [--res-h RH] [--res-w RW] [--colour-alive CA [CA ...]] [--colour-dead CD [CD ...]] [--colour-fade CF [CF ...]]
-            [--colour-background CB [CB ...]] [--cell_size CS] [--size-x SX] [--size-y SY] [--tickrate T] [--seed S] [--save-file F] [--load L]
-            [--pause-stalemate PS] [--pause-oscillators PO] [--fade-rate FR] [--fade-death-value FD]
+usage: CGOL [-h] [-rw RW] [-rh RH] [-ca CA [CA ...]] [-cd CD [CD ...]] [-cf CF [CF ...]] [-cb CB [CB ...]] [-cs CS] [-gw GW] [-gh GH] [-ti TI] [-se SE]
+            [-sf SF] [-lo LO] [-ps PS] [-po PO] [-fr FR] [-fd FD]
 
 Conway's Game of Life
 
 options:
-  -h, --help            show this help message and exit
-  --res-h RH, -rh RH    Height of the Game.
-  --res-w RW, -rw RW    Width of the Game.
-  --colour-alive CA [CA ...], -ca CA [CA ...]
-                        Colour for alive cells. 'R G B'
-  --colour-dead CD [CD ...], -cd CD [CD ...]
-                        Colour for dead cells. 'R G B'
-  --colour-fade CF [CF ...], -cf CF [CF ...]
-                        Colour to fade dead cells to. 'R G B'
-  --colour-background CB [CB ...], -cb CB [CB ...]
-                        Colour for dead cells. 'R G B'
-  --cell_size CS, -cs CS
-                        Size of a cell in pixel.
-  --size-x SX, -sx SX   Height of the World.
-  --size-y SY, -sy SY   Width of the World.
-  --tickrate T, -t T    Number of times the game shall update in a second (FPS).
-  --seed S, -s S        Seed value used to create World.
-  --save-file F, -f F   Path of the in-/output file. (Should be .csv)
-  --load L, -l L        Load revious save.
-  --pause-stalemate PS, -ps PS
-                        Game pauses on a stalemate.
-  --pause-oscillators PO, -po PO
-                        Game pauses when only oscillators remain.
-  --fade-rate FR, -fr FR
-                        Value by which a cell should decrease every generation.
-  --fade-death-value FD, -fd FD
-                        Value a cell should have after death.
+  -h, --help       show this help message and exit
+  -rw RW           Width of the Game.
+  -rh RH           Height of the Game.
+  -ca CA [CA ...]  Color for alive cells. 'R G B'
+  -cd CD [CD ...]  Color for dead cells. 'R G B'
+  -cf CF [CF ...]  Color to fade dead cells to. 'R G B'
+  -cb CB [CB ...]  Color for dead cells. 'R G B'
+  -cs CS           Size of a cell in pixel.
+  -gw GW           Width of the World.
+  -gh GH           Height of the World.
+  -ti TI           Number of times the game shall update in a second (FPS).
+  -se SE           Seed value used to create World.
+  -sf SF           Path of the in-/output file. (Should be .csv)
+  -lo LO           Load revious save.
+  -ps PS           Game pauses on a stalemate.
+  -po PO           Game pauses when only oscillators remain.
+  -fr FR           Value by which a cell should decrease every generation.
+  -fd FD           Value a cell should have after death.
 ```
 
 | Argument | Description | Default Value |
 | ------ | ------ | ------ |
-| --res-h (-rh) | Height of the Game. | 720 |
-| --res-w (-rw) | Width of the Game. | 1280 |
-| --colour-alive (-ca) | Colour for alive cells. 'R G B' | 255, 144, 0 |
-| --colour-dead (-cd) | Colour for dead cells. 'R G B' | 0, 0, 0 |
-| --colour-fade (-cf) | Colour to fade dead cells to. 'R G B' | 0, 0, 0 |
-| --colour-background (-cb) | Colour of background. 'R G B' | 16, 16, 16 |
-| --cell-size (-cs) | Size of a cell in pixel | 8 |
-| --size-x (-sx) | Height of the World. | 90 |
-| --size-y (-sy) | Width of the World. | 160 |
-| --tickrate (-t) | Number of times the game shall update in a second (FPS). | 60 |
-| --seed (-s) | Seed value used to create World. | -1 |
-| --save-file (-f) | Path of the in-/output file. (Should be .csv) | './cgol.csv' |
-| --load (-l) | Load revious save. | False |
-| --pause-stalemate (-ps) | Game pauses on a stalemate. | False |
-| --pause-oscillators (-po) | Game pauses when only oscillators remain. | False |
-| --fade-rate (-fr) | Value by which a cell should decrease every generation. | 0.01 |
-| --fade-death-value (-fd) | Value a cell should have after death. | 0.5 |
+| -rh | Height of the Game. | 720 |
+| -rw | Width of the Game. | 1280 |
+| -ca | Colour for alive cells. 'R G B' | 255, 144, 0 |
+| -cd | Colour for dead cells. 'R G B' | 0, 0, 0 |
+| -cf | Colour to fade dead cells to. 'R G B' | 0, 0, 0 |
+| -cb | Colour of background. 'R G B' | 16, 16, 16 |
+| -cs | Size of a cell in pixel | 8 |
+| -sx | Height of the World. | 90 |
+| -sy | Width of the World. | 160 |
+| -ti | Number of times the game shall update in a second (FPS). | 60 |
+| -se | Seed value used to create World. | -1 |
+| -sf | Path of the in-/output file. (Should be .csv) | '~/cgol.csv' |
+| -lo | Load revious save. | False |
+| -ps | Game pauses on a stalemate. | False |
+| -po | Game pauses when only oscillators remain. | False |
+| -fr | Value by which a cell should decrease every generation. | 0.01 |
+| -fd | Value a cell should have after death. | 0.5 |
 
 ## Controls
 
