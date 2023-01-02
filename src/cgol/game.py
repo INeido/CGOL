@@ -11,8 +11,8 @@ Rules of Conway's Game of Life:
 Github Repo:
 https://github.com/INeido/CGOL
 """
-from world import World
-from utils import *
+from .world import World
+from .utils import *
 import pygame
 import numpy
 
@@ -23,32 +23,39 @@ class Game:
 
     Contains the functions needed to run the game.
 
-    :param int res_height: Height of the Game.
-    :param int res_width: Width of the Game.
-    :param tuple color_alive: Colour for alive cells.
-    :param tuple color_dead: Colour for dead cells.
-    :param tuple color_background: Colour for background.
-    :param int cell_size: Size of a cell in pixel.
-    :param int tickrate: Number of times the game shall update in a second (FPS).
-    :param str save_file: Path of the in-/output file.
-    :param bool pause_stalemate: Game pauses on a stalemate.
-    :param bool pause_oscillators: Game pauses when only oscillators remain.
+    :param int rw: Width of the Game.
+    :param int rh: Height of the Game.
+    :param int cs: Size of a cell in pixel.
+    :param int ti: Number of times the game shall update in a second (FPS).
+    :param tuple ca: Color for alive cells.
+    :param tuple cd: Color for dead cells.
+    :param tuple cf: Color to fade dead cells to.
+    :param tuple cb: Color for background.
+    :param str sf: Path of the in-/output file.
+    :param bool ps: Game pauses on a stalemate.
+    :param bool po: Game pauses when only (2 period) oscillators remain.
     """
 
-    def __init__(self, res_width: int, res_height: int, color_alive: tuple, color_dead: tuple, color_fade: tuple, color_background: tuple, cell_size: int, tickrate: int, save_file: str, pause_stalemate: bool, pause_oscillators: bool):
-        self.res_width = res_width
-        self.res_height = res_height
-        self.color_alive = numpy.array(color_alive)
-        self.color_dead = numpy.array(color_dead)
-        self.color_fade = numpy.array(color_fade)
-        self.color_background = numpy.array(color_background)
-        self.cell_size = cell_size
-        self.tickrate = tickrate
-        self.save_file = save_file
-        self.pause_stalemate = pause_stalemate
-        self.pause_oscillators = pause_oscillators
+    def __init__(self, rw: int, rh: int, gw: int, gh: int, cs: int, ti: int, se: int, ca: tuple, cd: tuple, cf: tuple, cb: tuple, fr: float, fd: float, sf: str, lo: bool, ps: bool, po: bool):
+        self.res_width = rw
+        self.res_height = rh
+        self.cell_size = cs
+        self.tickrate = ti
+        self.color_alive = numpy.array(ca)
+        self.color_dead = numpy.array(cd)
+        self.color_fade = numpy.array(cf)
+        self.color_background = numpy.array(cb)
+        self.save_file = sf
+        self.pause_stalemate = ps
+        self.pause_oscillators = po
 
-    def setup_pygame(self):
+        self.create_world(gw, gh, se, lo, fr, fd)
+
+    def run(self) -> None:
+        self.setup_pygame()
+        self.game_loop()
+
+    def setup_pygame(self) -> None:
         """Creates and configures pygame instance.
         """
         pygame.init()
@@ -56,32 +63,25 @@ class Game:
         self.dis = pygame.display.set_mode((self.res_width, self.res_height), 0, 8)
         self.clock = pygame.time.Clock()
 
-    def get_borders(self):
+    def get_borders(self) -> None:
         """Determines the visible edges of the grid based on the current viewport.
 
         This function updates the following instance variables with the calculated values:
-            - vis_west: The x-coordinate of the leftmost visible column of cells.
-            - vis_east: The x-coordinate of the rightmost visible column of cells.
             - vis_north: The y-coordinate of the topmost visible row of cells.
             - vis_south: The y-coordinate of the bottommost visible row of cells.
+            - vis_west: The x-coordinate of the leftmost visible column of cells.
+            - vis_east: The x-coordinate of the rightmost visible column of cells.
             - vis_width: The width of the visible region, in pixels.
             - vis_height: The height of the visible region, in pixels.
         """
-        self.vis_west = max(0, int((-self.offset_y) / self.cell_size))
-        self.vis_east = max(0, min(self.world.grid_height, self.world.grid_height - int(self.offset_y / self.cell_size) - self.world.grid_height - int(-self.res_height / self.cell_size) + 1))
-        self.vis_north = max(0, int((-self.offset_x) / self.cell_size))
-        self.vis_south = max(0, min(self.world.grid_width, self.world.grid_width - int(self.offset_x / self.cell_size) - self.world.grid_width - int(-self.res_width / self.cell_size) + 1))
-        self.vis_width = (self.vis_south - self.vis_north) * self.cell_size
-        self.vis_height = (self.vis_east - self.vis_west) * self.cell_size
-        print((self.vis_west, self.vis_east))
+        self.vis_north = max(0, int((-self.offset_y) / self.cell_size))
+        self.vis_south = max(0, min(self.world.grid_height, self.world.grid_height - int(self.offset_y / self.cell_size) - self.world.grid_height - int(-self.res_height / self.cell_size) + 1))
+        self.vis_west = max(0, int((-self.offset_x) / self.cell_size))
+        self.vis_east = max(0, min(self.world.grid_width, self.world.grid_width - int(self.offset_x / self.cell_size) - self.world.grid_width - int(-self.res_width / self.cell_size) + 1))
+        self.vis_width = (self.vis_east - self.vis_west) * self.cell_size
+        self.vis_height = (self.vis_south - self.vis_north) * self.cell_size
 
-        print((self.vis_north, self.vis_south))
-
-        print((self.vis_width, self.vis_height))
-
-        print((self.offset_x, self.offset_y))
-
-    def draw(self):
+    def draw(self) -> None:
         """Converts the 2D Numpy Array of floats to a 3D Numpy Array of integers.
         More specifically it creates a 3rd dimension with depth 3
         holding the RGB values.
@@ -117,7 +117,7 @@ class Game:
         self.dis.fill(self.color_background)
 
         # Get the slice of self.world.grid that is actually visible and has to be rendered.
-        colors = self.world.grid[self.vis_north:self.vis_south, self.vis_west:self.vis_east]
+        colors = self.world.grid[self.vis_west:self.vis_east, self.vis_north:self.vis_south]
 
         # Set fade colors using interpolation TODO: Is it faster to not interpolate 0s and 1s?
         colors = (self.color_fade + (self.color_alive - self.color_fade) * colors[:, :, numpy.newaxis]).clip(0, 255).astype(int)
@@ -129,11 +129,11 @@ class Game:
         sur = pygame.surfarray.make_surface(colors)
 
         # If the left or top border is not visible, the offset needs to be adjusted.
-        if self.vis_north > 0:
+        if self.vis_west > 0:
             off_x = 0
         else:
             off_x = self.offset_x
-        if self.vis_west > 0:
+        if self.vis_north > 0:
             off_y = 0
         else:
             off_y = self.offset_y
@@ -143,13 +143,13 @@ class Game:
         # Update display
         pygame.display.flip()
 
-    def center(self):
-        """Updates offsets so that grid is centered.
+    def center(self) -> None:
+        """Updates offsets so that pygame.surface is centered.
         """
         self.offset_x = (self.res_width / 2) - (self.world.grid_width / 2 * self.cell_size)
         self.offset_y = (self.res_height / 2) - (self.world.grid_height / 2 * self.cell_size)
 
-    def create_world(self, grid_width: int, grid_height: int, seed: int, load: bool, fr, fd):
+    def create_world(self, grid_width: int, grid_height: int, seed: int, load: bool, fr, fd) -> None:
         """Creates a new World Object.
 
         Parameters:
@@ -173,7 +173,7 @@ class Game:
         # Create the pygame surface in the correct size
         self.get_borders()
 
-    def calc_generation(self):
+    def calc_generation(self) -> None:
         """Calculates and renders the cells.
         """
         # Iterate generations
@@ -195,7 +195,7 @@ class Game:
             print("\nGame stopped. Reason: Only Oscillators remaining.")
             self.game_loop(pause=True)
 
-    def interpolate(self, point0, point1):
+    def interpolate(self, point0, point1) -> tuple or int:
         """Interpolates between two points.
 
         :return: Coordinates of interpolated cells.
@@ -221,7 +221,7 @@ class Game:
 
             return int(x), int(y)
 
-    def game_loop(self, pause=False):
+    def game_loop(self, pause=False) -> None:
         """The main loop that runs the game.
         """
         # Flags

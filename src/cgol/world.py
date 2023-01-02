@@ -11,18 +11,20 @@ class World:
 
     Contains various functions to store and update a grid with Cells.
 
-    :param int grid_width: Height of the World.
-    :param int grid_height: Width of the World.
-    :param int seed: Seed for the array generation. Default is random.
+    :param int gw: Width of the World.
+    :param int gh: Height of the World.
+    :param int se: Seed for the array generation. Default is random.
+    :param float fr: Value a cell should loose per generation after death.
+    :param float fd: Fade value a cell should start with after death.
     :param array rows: The 2D Array filled with random 0s and 1s with the last being settings.
     """
 
-    def __init__(self, grid_width: int, grid_height: int, seed: int, fade_rate: float, fade_dead: float, rows=[]):
-        self.grid_width = grid_width
-        self.grid_height = grid_height
-        self.fade_rate = fade_rate
-        self.fade_dead = fade_dead
-        self.seed = numpy.random.randint(2**32 - 1) if seed == -1 else seed
+    def __init__(self, gw: int, gh: int, se: int, fr: float, fd: float, rows=[]):
+        self.grid_width = gw
+        self.grid_height = gh
+        self.fade_rate = fr
+        self.fade_dead = fd
+        self.seed = numpy.random.randint(2**32 - 1) if se == -1 else se
         self.generations = 0
 
         # If 'rows' are empty, create new grid, else convert 'rows' to numpy array.
@@ -30,7 +32,7 @@ class World:
         self.grid_backup_0 = numpy.zeros_like(self.grid)
         self.grid_backup_1 = numpy.zeros_like(self.grid)
 
-    def populate(self, mode: str, ):
+    def populate(self, mode: str) -> None:
         """Fill 'grid' with different values.
 
         :param bool mode: The mode based on which the array should be filled.
@@ -48,21 +50,21 @@ class World:
         else:
             return False
 
-    def load_from_csv(self, grid):
+    def load_from_csv(self, grid) -> None:
         """Loads data from CSV file.
 
         :param array grid: The 2D Array filled with random 0s and 1s with the last being settings.
         """
         self.grid = numpy.array(grid, dtype=float)
 
-    def backup(self):
+    def backup(self) -> None:
         """Creates a shallow copy of the grid.
         """
         temp = numpy.copy(self.grid_backup_0)
         self.grid_backup_0 = numpy.copy(self.grid)
         self.grid_backup_1 = numpy.copy(temp)
 
-    def check_stalemate(self):
+    def check_stalemate(self) -> bool:
         """Compares the last backup with the current grid to see of it changed.
 
         :return: Is the backup the same as the current grid?
@@ -70,7 +72,7 @@ class World:
         """
         return numpy.array_equal(self.grid, self.grid_backup_0)
 
-    def check_oscillators(self):
+    def check_oscillators(self) -> bool:
         """Compares the second last backup with the current grid to see of it changed.
 
         :return: Is the second last backup the same as the current grid?
@@ -78,14 +80,14 @@ class World:
         """
         return numpy.array_equal(self.grid, self.grid_backup_1)
 
-    def extend(self):
+    def extend(self) -> None:
         """Extends grid in every direction by one row/column.
         """
         self.grid = numpy.pad(self.grid, pad_width=1, mode='constant', constant_values=0)
         self.grid_width += 2
         self.grid_height += 2
 
-    def reduce(self):
+    def reduce(self) -> None:
         """Reduce the size of the grid by removing the outermost row and column on all sides.
         If the grid has a width or height less than 3, the function returns without modifying the grid.
         """
@@ -95,7 +97,7 @@ class World:
         self.grid_width -= 2
         self.grid_height -= 2
 
-    def get_neighbors(self):
+    def get_neighbors(self) -> numpy.array:
         """Gets the number of alive neighbors of a cell in a toroidal space.
         It uses the numpy roll function to shift the values in the
         grid along the x and y axis. 
@@ -125,7 +127,7 @@ class World:
              [4 4 3]]        [4 5 3]]        [4 5 4]]
 
         :return: An array with the count of alive neighbors for each cell.
-        :rtype: np.array int
+        :rtype: numpy.array int
         """
         # Create a new array the same size as 'grid'
         neighbors = numpy.zeros_like(self.grid, dtype=int)
@@ -143,7 +145,7 @@ class World:
 
         return neighbors
 
-    def apply_rules_fade(self, neighbors):
+    def apply_rules_fade(self, neighbors) -> numpy.array:
         """Determines the new state of each cell for the current tick using the "fade" implementation.
         In this implementation, cell values are stored as floats:
             1.0 = alive
@@ -158,9 +160,9 @@ class World:
             If the number of neighbors is 3, the cell becomes alive (value = 1.0).
             Otherwise, the cell's value is decreased by the "fade_rate" value.
 
-        :param np.array neighbors: The number of neighbors for each cell.
+        :param numpy.array neighbors: The number of neighbors for each cell.
         :return: New state of cells.
-        :rtype: np.array float
+        :rtype: numpy.array float
         """
         # Create a copy of the grid to store the next generation
         next_generation = numpy.copy(self.grid)
@@ -179,16 +181,16 @@ class World:
 
         return numpy.where(next_generation < 0.00001, 0.0, next_generation)
 
-    def apply_rules(self, neighbors):
+    def apply_rules(self, neighbors) -> numpy.array:
         """Apply Rules
         ====
 
         Determines the new state of each cell for the current tick.
 
-        :param np.array neighbors: The number of neighbors for each cell.
+        :param numpy.array neighbors: The number of neighbors for each cell.
 
         :return: New state of cells.
-        :rtype: np.array int
+        :rtype: numpy.array int
         """
         # Create a copy of the grid to store the next generation
         next_generation = numpy.copy(self.grid)
@@ -207,7 +209,7 @@ class World:
 
         return next_generation
 
-    def update(self):
+    def update(self) -> None:
         """Updates the state of the cells in the world according to the rules of the Game of Life.
         """
         # Get neighbors
