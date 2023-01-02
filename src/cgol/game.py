@@ -12,12 +12,9 @@ Github Repo:
 https://github.com/INeido/CGOL
 """
 from world import World
-from pygame.locals import *
+from utils import *
 import pygame
 import numpy
-import csv
-import sys
-import os
 
 
 class Game:
@@ -26,11 +23,11 @@ class Game:
 
     Contains the functions needed to run the game.
 
-    :param int res_h: Height of the Game.
-    :param int res_w: Width of the Game.
-    :param tuple c_a: Colour for alive cells.
-    :param tuple c_d: Colour for dead cells.
-    :param tuple c_b: Colour for background.
+    :param int res_height: Height of the Game.
+    :param int res_width: Width of the Game.
+    :param tuple color_alive: Colour for alive cells.
+    :param tuple color_dead: Colour for dead cells.
+    :param tuple color_background: Colour for background.
     :param int cell_size: Size of a cell in pixel.
     :param int tickrate: Number of times the game shall update in a second (FPS).
     :param str save_file: Path of the in-/output file.
@@ -38,13 +35,13 @@ class Game:
     :param bool pause_oscillators: Game pauses when only oscillators remain.
     """
 
-    def __init__(self, res_h: int, res_w: int, c_a: tuple, c_d: tuple, c_f: tuple, c_b: tuple, cell_size: int, tickrate: int, save_file: str, pause_stalemate: bool, pause_oscillators: bool):
-        self.res_h = res_h
-        self.res_w = res_w
-        self.c_a = c_a
-        self.c_d = c_d
-        self.c_f = c_f
-        self.c_b = c_b
+    def __init__(self, res_width: int, res_height: int, color_alive: tuple, color_dead: tuple, color_fade: tuple, color_background: tuple, cell_size: int, tickrate: int, save_file: str, pause_stalemate: bool, pause_oscillators: bool):
+        self.res_width = res_width
+        self.res_height = res_height
+        self.color_alive = numpy.array(color_alive)
+        self.color_dead = numpy.array(color_dead)
+        self.color_fade = numpy.array(color_fade)
+        self.color_background = numpy.array(color_background)
         self.cell_size = cell_size
         self.tickrate = tickrate
         self.save_file = save_file
@@ -52,147 +49,132 @@ class Game:
         self.pause_oscillators = pause_oscillators
 
     def setup_pygame(self):
-        """Setup Pygame
-        ====
-
-        Creates and configures pygame instance.
+        """Creates and configures pygame instance.
         """
         pygame.init()
         pygame.display.set_caption("CGOL", "hardware")
-        self.dis = pygame.display.set_mode((self.res_w, self.res_h), 0, 8)
+        self.dis = pygame.display.set_mode((self.res_width, self.res_height), 0, 8)
         self.clock = pygame.time.Clock()
 
-    def get_save_path(self):
-        """Get Save Path
-        ====
-
-        Makes sure the 'cgol/images' folder exists and return its path.
-
-        :return: The home directory of the user appended with '/cgol/images'.capitalize()
-        :rtype: string
-        """
-        path = os.path.expanduser("~") + "/cgol/images/"
-        if not os.path.exists(path):
-            os.makedirs(path)
-        return path
-
     def get_borders(self):
-        """Get Borders
-        ====
+        """Determines the visible edges of the grid based on the current viewport.
 
-        Gets the visible edges of the grid.
+        This function updates the following instance variables with the calculated values:
+            - vis_west: The x-coordinate of the leftmost visible column of cells.
+            - vis_east: The x-coordinate of the rightmost visible column of cells.
+            - vis_north: The y-coordinate of the topmost visible row of cells.
+            - vis_south: The y-coordinate of the bottommost visible row of cells.
+            - vis_width: The width of the visible region, in pixels.
+            - vis_height: The height of the visible region, in pixels.
         """
-        self.vis_west = max(0, int((-self.offset_x) / self.cell_size))
-        self.vis_east = min(self.world.size_y, self.world.size_y - int(self.offset_x / self.cell_size) - self.world.size_y - int(-self.res_w / self.cell_size) + 1)
-        self.vis_north = max(0, int((-self.offset_y) / self.cell_size))
-        self.vis_south = min(self.world.size_x, self.world.size_x - int(self.offset_y / self.cell_size) - self.world.size_x - int(-self.res_h / self.cell_size) + 1)
+        self.vis_west = max(0, int((-self.offset_y) / self.cell_size))
+        self.vis_east = max(0, min(self.world.grid_height, self.world.grid_height - int(self.offset_y / self.cell_size) - self.world.grid_height - int(-self.res_height / self.cell_size) + 1))
+        self.vis_north = max(0, int((-self.offset_x) / self.cell_size))
+        self.vis_south = max(0, min(self.world.grid_width, self.world.grid_width - int(self.offset_x / self.cell_size) - self.world.grid_width - int(-self.res_width / self.cell_size) + 1))
+        self.vis_width = (self.vis_south - self.vis_north) * self.cell_size
+        self.vis_height = (self.vis_east - self.vis_west) * self.cell_size
+        print((self.vis_west, self.vis_east))
+
+        print((self.vis_north, self.vis_south))
+
+        print((self.vis_width, self.vis_height))
+
+        print((self.offset_x, self.offset_y))
 
     def draw(self):
-        """Draw Game
-        ====
+        """Converts the 2D Numpy Array of floats to a 3D Numpy Array of integers.
+        More specifically it creates a 3rd dimension with depth 3
+        holding the RGB values.
 
-        Draws the current World.
+        Before:                     After:
+
+        Shape:      (2, 2)          (2, 2, 3)
+
+        Example:    [[0.5  1.  ]    [[[127  72   0]  [255 144   0]]
+                     [0.   0.49]]    [[  0   0   0]  [124  70   0]]]
+
+        The colors in this example used were
+        Color alive: [255, 144, 0]
+        Color dead:  [  0,   0, 0]
+        Color fade:  [  0,   0, 0]
+
+        This 3D Array gets scaled up using numpy be the cell size like so:
+
+        Before:
+        [[[127  72   0]  [255 144   0]]
+         [[  0   0   0]  [124  70   0]]]
+
+        After:
+        [[[127  72   0]  [127  72   0]  [255 144   0]  [255 144   0]]
+         [[127  72   0]  [127  72   0]  [255 144   0]  [255 144   0]]
+         [[  0   0   0]  [  0   0   0]  [124  70   0]  [124  70   0]]
+         [[  0   0   0]  [  0   0   0]  [124  70   0]  [124  70   0]]]
+
+        The cell size in this example is 2 pixels, thus the array got
+        scaled by a factor of 2 in both axis.
         """
-        # Reset background to background color
-        self.dis.fill(self.c_b)
-        self.sur.fill(self.c_d)
+        # Reset the background color
+        self.dis.fill(self.color_background)
 
-        # Update surface with changed pixels
-        for x in range(self.vis_north, self.vis_south):
-            for y in range(self.vis_west, self.vis_east):
-                fade_value = self.world.grid[x][y]
-                if fade_value > 0:
-                    color = pygame.Color(self.c_f)
-                    new_color = color.lerp(self.c_a, fade_value)
-                    pygame.draw.rect(self.sur, new_color, pygame.Rect(y*self.cell_size, x*self.cell_size, self.cell_size, self.cell_size))
+        # Get the slice of self.world.grid that is actually visible and has to be rendered.
+        colors = self.world.grid[self.vis_north:self.vis_south, self.vis_west:self.vis_east]
 
-        # Draw surface in display
-        self.dis.blit(self.sur, (self.offset_x, self.offset_y))
+        # Set fade colors using interpolation TODO: Is it faster to not interpolate 0s and 1s?
+        colors = (self.color_fade + (self.color_alive - self.color_fade) * colors[:, :, numpy.newaxis]).clip(0, 255).astype(int)
+
+        # Scale the array in both axis
+        colors = numpy.repeat(numpy.repeat(colors, self.cell_size, axis=1), self.cell_size, axis=0)
+
+        # Create a surface from the array
+        sur = pygame.surfarray.make_surface(colors)
+
+        # If the left or top border is not visible, the offset needs to be adjusted.
+        if self.vis_north > 0:
+            off_x = 0
+        else:
+            off_x = self.offset_x
+        if self.vis_west > 0:
+            off_y = 0
+        else:
+            off_y = self.offset_y
+        # Blit the surface to the display
+        self.dis.blit(sur, (off_x, off_y))
+
         # Update display
         pygame.display.flip()
 
-    def update_surface(self):
-        # Calculate range of cells to draw
-        self.get_borders()
-
-        self.sur = pygame.Surface((self.world.size_y*self.cell_size, self.world.size_x*self.cell_size))
-
     def center(self):
-        """Center
-        ====
-
-        Updates offsets so that grid is centered.
+        """Updates offsets so that grid is centered.
         """
-        self.offset_x = (self.res_w / 2) - (self.world.size_y / 2 * self.cell_size)
-        self.offset_y = (self.res_h / 2) - (self.world.size_x / 2 * self.cell_size)
+        self.offset_x = (self.res_width / 2) - (self.world.grid_width / 2 * self.cell_size)
+        self.offset_y = (self.res_height / 2) - (self.world.grid_height / 2 * self.cell_size)
 
-    def create_world(self, size_x: int, size_y: int, seed: int, load: bool, fr, fd):
-        """Create World
-        ====
-
-        Creates a new World Object.
+    def create_world(self, grid_width: int, grid_height: int, seed: int, load: bool, fr, fd):
+        """Creates a new World Object.
 
         Parameters:
-        :param int size_x: Height of the Grid.
-        :param int size_y: Width of the Grid.
+        :param int grid_width: Height of the Grid.
+        :param int grid_height: Width of the Grid.
         :param int seed: Seed for the array generation. Default is random (-1).
         :param bool load: Boolean indicating whether the last game should be loaded.
         """
         if load:
             try:
-                self.world = World(size_x, size_y, seed, fr, fd, self.load_grid())
+                self.world = World(grid_width, grid_height, seed, fr, fd, self.load_grid())
             except Exception as e:
                 print("Couldn't load file.", e)
-                self.shutdown()
+                shutdown(pygame)
         else:
-            self.world = World(size_x, size_y, seed, fr, fd)
+            self.world = World(grid_width, grid_height, seed, fr, fd)
 
         # Gets correct offsets to center the grid
         self.center()
 
         # Create the pygame surface in the correct size
-        self.update_surface()
-
-    def save_grid(self):
-        """Save Grid
-        ====
-
-        Saves the Grid into a CSV file.
-        """
-        try:
-            with open(self.save_file, "w", newline="") as csvfile:
-                writer = csv.writer(csvfile)
-
-                for row in self.world.grid:
-                    writer.writerow(row)
-                writer.writerow([self.world.seed])
-                writer.writerow([self.world.generations])
-            print("Last tick saved into:", self.save_file)
-
-            print("")
-            print("Seed used: ", self.world.seed)
-            print("Generations: ", self.world.generations)
-        except Exception as e:
-            print("Couldn't save file.", e)
-
-    def load_grid(self):
-        """Load Grid
-        ====
-
-        Loads the Grid from a CSV file.
-
-        :return: Rows of the CSV.
-        :rtype: array
-        """
-        with open(self.save_file, "r") as csvfile:
-            reader = csv.reader(csvfile)
-            return [row for row in reader]
+        self.get_borders()
 
     def calc_generation(self):
-        """Calc Generation
-        ====
-
-        Calculates and renders the cells.
+        """Calculates and renders the cells.
         """
         # Iterate generations
         self.world.generations += 1
@@ -214,10 +196,7 @@ class Game:
             self.game_loop(pause=True)
 
     def interpolate(self, point0, point1):
-        """Interpolate
-        ====
-
-        Interpolates between two points.
+        """Interpolates between two points.
 
         :return: Coordinates of interpolated cells.
         :rtype: tuple or int
@@ -231,22 +210,19 @@ class Game:
             steps = numpy.stack(numpy.linspace(point0, point1, int(distance / 2)))
 
             # Calculate coordinates of interpolated cells
-            x = (steps[:, 1]-self.offset_y)//self.cell_size
-            y = (steps[:, 0]-self.offset_x)//self.cell_size
+            x = (steps[:, 0]-self.offset_x)//self.cell_size
+            y = (steps[:, 1]-self.offset_y)//self.cell_size
 
             return x.astype(int), y.astype(int)
         else:
             # Calculate coordinates of normal cells
-            x = (point1[1]-self.offset_y)//self.cell_size
-            y = (point1[0]-self.offset_x)//self.cell_size
+            x = (point1[0]-self.offset_x)//self.cell_size
+            y = (point1[1]-self.offset_y)//self.cell_size
 
             return int(x), int(y)
 
     def game_loop(self, pause=False):
-        """Game Loop
-        ====
-
-        The main loop that runs the game.
+        """The main loop that runs the game.
         """
         # Flags
         is_looping = True
@@ -264,12 +240,12 @@ class Game:
             # Screen drag
             if drag and prev_pos != None:
                 self.offset_x, self.offset_y = numpy.add(numpy.subtract(curr_pos, prev_pos), (oldoffset_x, oldoffset_y))
-                self.update_surface()
+                self.get_borders()
 
             # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.shutdown()
+                    shutdown(pygame)
                 # Key events
                 elif event.type == pygame.KEYDOWN:
                     # RETURN pressed: Pause game
@@ -277,7 +253,7 @@ class Game:
                         running = not running
                     # ESCAPE pressed: Close game
                     if event.key == pygame.K_ESCAPE:
-                        self.shutdown()
+                        shutdown(pygame)
                     # Right Arrow pressed: Forward one generation
                     if event.key == pygame.K_RIGHT:
                         self.calc_generation()
@@ -298,26 +274,26 @@ class Game:
                         self.world.populate("kill")
                     # L pressed: Load last saved game
                     if event.key == pygame.K_l:
-                        self.world.load_from_csv(self.load_grid())
-                        self.update_surface()
+                        self.world.load_from_csv(load_grid(self.save_file))
+                        self.get_borders()
                     # S pressed: Save current game
                     if event.key == pygame.K_s:
-                        self.save_grid()
+                        save_grid(self.world.grid, self.save_file)
                     # C pressed: Center view
                     if event.key == pygame.K_c:
                         self.center()
-                        self.update_surface()
+                        self.get_borders()
                     # P pressed: Save screenshot
                     if event.key == pygame.K_p:
                         pygame.image.save(self.sur, f"{self.get_save_path() + str(self.world.generations)}.png")
                     # + pressed: Extend grid
                     if event.key == pygame.K_PLUS:
                         self.world.extend()
-                        self.update_surface()
+                        self.get_borders()
                     # - pressed: Reduce grid
                     if event.key == pygame.K_MINUS:
                         self.world.reduce()
-                        self.update_surface()
+                        self.get_borders()
 
                 # Mouse events
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -347,24 +323,24 @@ class Game:
 
                 # Zoom
                 elif event.type == pygame.MOUSEWHEEL:
-                    if event.y == 1 and self.cell_size < 128:
+                    if event.y == 1:
                         self.cell_size *= 2
                         self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
                         self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
-                        self.update_surface()
+                        self.get_borders()
                     elif event.y == -1 and self.cell_size > 1:
                         self.cell_size /= 2
                         self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) / 2
                         self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) / 2
-                        self.update_surface()
+                        self.get_borders()
 
             # Interpolate to prevent dotted line
             if draw and prev_pos != None:
                 x, y = self.interpolate(prev_pos, curr_pos)
                 if isinstance(x, int) and isinstance(y, int):
-                    if 0 <= x < self.world.size_x and 0 <= y < self.world.size_y:
+                    if 0 <= x < self.world.grid_width and 0 <= y < self.world.grid_height:
                         self.world.grid[x, y] = draw_color or (0.5 if self.world.grid[x, y] == 1.0 and not draw_color else self.world.grid[x, y])
-                elif min(x) >= 0 and max(x) < self.world.size_x and min(y) >= 0 and max(y) < self.world.size_y:
+                elif min(x) >= 0 and max(x) < self.world.grid_width and min(y) >= 0 and max(y) < self.world.grid_height:
                     for xc, yc in zip(x, y):
                         self.world.grid[xc, yc] = draw_color or (0.5 if self.world.grid[xc, yc] == 1.0 and not draw_color else self.world.grid[xc, yc])
                 prev_pos = curr_pos
@@ -383,11 +359,4 @@ class Game:
             # Calculate the next generation
             self.calc_generation()
 
-        self.shutdown()
-
-    def shutdown(self):
-        pygame.quit()
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)
+        shutdown(pygame)

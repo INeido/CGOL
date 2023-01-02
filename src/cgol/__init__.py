@@ -5,15 +5,15 @@ import argparse
 def main():
     # Gather arguments
     parser = argparse.ArgumentParser(prog="CGOL", description="Conway's Game of Life")
-    parser.add_argument("--res-h", "-rh", dest="rh", default=720, type=int, required=False, help="Height of the Game.")
-    parser.add_argument("--res-w", "-rw", dest="rw", default=1280, type=int, required=False, help="Width of the Game.")
+    parser.add_argument("--res-width", "-rw", dest="rw", default=1280, type=int, required=False, help="Width of the Game.")
+    parser.add_argument("--res-height", "-rh", dest="rh", default=720, type=int, required=False, help="Height of the Game.")
     parser.add_argument("--color-alive", "-ca", dest="ca", default=(255, 144, 0), type=int, required=False, help="Colour for alive cells. 'R G B'", nargs='+')
     parser.add_argument("--color-dead", "-cd", dest="cd", default=(0, 0, 0), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
     parser.add_argument("--color-fade", "-cf", dest="cf", default=(0, 0, 0), type=int, required=False, help="Colour to fade dead cells to. 'R G B'", nargs='+')
     parser.add_argument("--color-background", "-cb", dest="cb", default=(16, 16, 16), type=int, required=False, help="Colour for dead cells. 'R G B'", nargs='+')
     parser.add_argument("--cell_size", "-cs", dest="cs", default=8, type=int, required=False, help="Size of a cell in pixel.")
-    parser.add_argument("--size-x", "-sx", dest="sx", default=90, type=int, required=False, help="Height of the World.")
-    parser.add_argument("--size-y", "-sy", dest="sy", default=160, type=int, required=False, help="Width of the World.")
+    parser.add_argument("--grid-width", "-gw", dest="gw", default=160, type=int, required=False, help="Width of the World.")
+    parser.add_argument("--grid-height", "-gh", dest="gh", default=90, type=int, required=False, help="Height of the World.")
     parser.add_argument("--tickrate", "-t", dest="t", default=60, type=float, required=False, help="Number of times the game shall update in a second (FPS).")
     parser.add_argument("--seed", "-s", dest="s", default=-1, type=int, required=False, help="Seed value used to create World.")
     parser.add_argument("--save-file", "-f", dest="f", default="./cgol.csv", type=str, required=False, help="Path of the in-/output file. (Should be .csv)")
@@ -25,12 +25,12 @@ def main():
     args = parser.parse_args()
 
     # Create new Game
-    game = Game(args.rh, args.rw, tuple(args.ca), tuple(args.cd), tuple(args.cf), tuple(args.cb), args.cs, args.t, args.f, args.ps, args.po)
+    game = Game(args.rw, args.rh, tuple(args.ca), tuple(args.cd), tuple(args.cf), tuple(args.cb), args.cs, args.t, args.f, args.ps, args.po)
 
     game.setup_pygame()
 
     # Let Game create the World
-    game.create_world(args.sx, args.sy, args.s, args.l, args.fr, args.fd)
+    game.create_world(args.gw, args.gh, args.s, args.l, args.fr, args.fd)
 
     # Start Game
     game.game_loop()
