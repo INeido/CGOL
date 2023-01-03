@@ -27,7 +27,7 @@ class World:
         self.seed = numpy.random.randint(2**32 - 1) if se == -1 else se
         self.generations = 0
 
-        # If 'rows' are empty, create new grid, else convert 'rows' to numpy array.
+        # If 'rows' are empty, create new grid, else convert 'rows' to numpy array
         self.populate("seed") if len(rows) == 0 else self.load_from_csv(rows)
         self.grid_backup_0 = numpy.zeros_like(self.grid)
         self.grid_backup_1 = numpy.zeros_like(self.grid)
@@ -97,10 +97,64 @@ class World:
         self.grid_width -= 2
         self.grid_height -= 2
 
-    def get_neighbors(self) -> numpy.array:
+    def change_neighbours_func(self, toroid: bool):
+        if toroid:
+            self.get_neighbors = self.get_neighbors_toroidal
+        else:
+            self.get_neighbors = self.get_neighbors_normal
+
+    def change_rules_func(self, fade: bool):
+        if fade:
+            self.apply_rules = self.apply_rules_fade
+        else:
+            self.apply_rules = self.apply_rules_normal
+
+    def get_neighbors_normal(self) -> numpy.array:
+        """Gets the number of alive neighbors of a cell in normal space.
+        It uses the numpy roll function to shift the values in the
+        grid along the x and y axis, but pads the grid by one in every
+        directio, to avoid wrapping around borders.
+        The resulting shifted arrays are summed and returned as the
+        number of neighbors for each cell.
+
+        The faded values are clipped so that they become integers.
+
+        self.grid:          clipped_grid:   padded_grid:
+                                                [[0 0 0 0 0]
+            [[1. 0.2 1. ]       [[1 0 1]         [0 1 0 1 0]
+             [0. 1.  0.4]   ->   [0 1 0]   ->    [0 0 1 0 0]
+             [1. 0.  1. ]]       [1 0 1]]        [0 1 0 1 0]
+                                                 [0 0 0 0 0]]
+
+        Afterwards the grid is rolled and the values, minus the
+        borders, are added onto 'neighbors'.
+
+        :return: An array with the count of alive neighbors for each cell.
+        :rtype: numpy.array int
+        """
+        # Create a new array the same size as 'grid'
+        neighbors = numpy.zeros_like(self.grid, dtype=int)
+
+        # Convert faded values to zeros
+        clipped_grid = numpy.where(self.grid < 1, 0, 1)
+
+        # Add padding to the grid using numpy.pad
+        padded_grid = numpy.pad(clipped_grid, pad_width=1, mode='constant', constant_values=0)
+
+        # Roll over every axis to get a new array with the number of neighbors
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                # Don't roll if both directions are 0.
+                if not dx and not dy:
+                    continue
+                neighbors += numpy.roll(numpy.roll(padded_grid, dx, axis=0), dy, axis=1)[1:-1, 1:-1]
+
+        return neighbors
+
+    def get_neighbors_toroidal(self) -> numpy.array:
         """Gets the number of alive neighbors of a cell in a toroidal space.
         It uses the numpy roll function to shift the values in the
-        grid along the x and y axis. 
+        grid along the x and y axis.
         The resulting shifted arrays are summed and returned as the
         number of neighbors for each cell.
 
@@ -138,19 +192,49 @@ class World:
         # Roll over every axis to get a new array with the number of neighbors
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
-                # Dont roll of both directions are 0.
+                # Dont roll if both directions are 0.
                 if not dx and not dy:
                     continue
                 neighbors += numpy.roll(numpy.roll(clipped_grid, dx, axis=0), dy, axis=1)
 
         return neighbors
 
+    def apply_rules_normal(self, neighbors) -> numpy.array:
+        """Determines the new state of each cell for the current tick using numpy.where()
+            to avaid nested for loops.
+
+            The standard rules of Conway's Game of Life apply. (B3/S23)
+
+            :param numpy.array neighbors: The number of neighbors for each cell.
+            :return: New state of cells.
+            :rtype: numpy.array int
+            """
+        # Create a copy of the grid to store the next generation
+        next_generation = numpy.copy(self.grid)
+
+        # Find the indices of cells that are currently alive
+        alive = numpy.where(self.grid == 1)
+
+        # Find the indices of cells that are currently dead
+        dead = numpy.where(self.grid == 0)
+
+        # Apply the rules to cells that are currently alive
+        next_generation[alive] = numpy.where((neighbors[alive] == 2) | (neighbors[alive] == 3), 1, 0)
+
+        # Apply the rule to cells that are currently dead
+        next_generation[dead] = numpy.where(neighbors[dead] == 3, 1, 0)
+
+        return next_generation
+
     def apply_rules_fade(self, neighbors) -> numpy.array:
-        """Determines the new state of each cell for the current tick using the "fade" implementation.
+        """Determines the new state of each cell for the current tick using the "fade" implementation
+        and numpy.where() to avaid nested for loops.
         In this implementation, cell values are stored as floats:
             1.0 = alive
             < 1.0 || > 0.0 = fading
             0.0 = dead
+
+        Still B3/S23 rules, but with varying states inbetween.
 
         For cells that are currently alive, the rules are applied as follows:
             If the number of neighbors is 2 or 3, the cell remains alive (value = 1.0).
@@ -181,34 +265,6 @@ class World:
 
         return numpy.where(next_generation < 0.00001, 0.0, next_generation)
 
-    def apply_rules(self, neighbors) -> numpy.array:
-        """Apply Rules
-        ====
-
-        Determines the new state of each cell for the current tick.
-
-        :param numpy.array neighbors: The number of neighbors for each cell.
-
-        :return: New state of cells.
-        :rtype: numpy.array int
-        """
-        # Create a copy of the grid to store the next generation
-        next_generation = numpy.copy(self.grid)
-
-        # Find the indices of cells that are currently alive
-        alive = numpy.where(self.grid == 1)
-
-        # Find the indices of cells that are currently dead
-        dead = numpy.where(self.grid == 0)
-
-        # Apply the rules to cells that are currently alive
-        next_generation[alive] = numpy.where((neighbors[alive] == 2) | (neighbors[alive] == 3), 1, 0)
-
-        # Apply the rule to cells that are currently dead
-        next_generation[dead] = numpy.where(neighbors[dead] == 3, 1, 0)
-
-        return next_generation
-
     def update(self) -> None:
         """Updates the state of the cells in the world according to the rules of the Game of Life.
         """
@@ -216,4 +272,4 @@ class World:
         neighbors = self.get_neighbors()
 
         # Apply rules
-        self.grid = self.apply_rules_fade(neighbors)
+        self.grid = self.apply_rules(neighbors)

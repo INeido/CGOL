@@ -51,6 +51,17 @@ def shutdown(pygame) -> None:
         os._exit(0)
 
 
+def str2bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif value.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
 def parse_cli() -> argparse.Namespace:
     try:
         parser = argparse.ArgumentParser(
@@ -149,21 +160,27 @@ def parse_cli() -> argparse.Namespace:
             dest="lo",
             required=False,
             default=False,
-            type=bool,
+            type=str2bool,
+            nargs='?',
+            const=True,
             help="Load revious save.")
         parser.add_argument(
             "-ps",
             dest="ps",
             required=False,
             default=False,
-            type=bool,
+            type=str2bool,
+            nargs='?',
+            const=True,
             help="Game pauses on a stalemate.")
         parser.add_argument(
             "-po",
             dest="po",
             required=False,
             default=False,
-            type=bool,
+            type=str2bool,
+            nargs='?',
+            const=True,
             help="Game pauses when only oscillators remain.")
         parser.add_argument(
             "-fr",
@@ -179,6 +196,24 @@ def parse_cli() -> argparse.Namespace:
             default=0.5,
             type=float,
             help="Value a cell should have after death.")
+        parser.add_argument(
+            "-to",
+            dest="to",
+            required=False,
+            default=True,
+            type=str2bool,
+            nargs='?',
+            const=True,
+            help="Enables toroidal space (Cells wrap around edges).")
+        parser.add_argument(
+            "-fa",
+            dest="fa",
+            required=False,
+            default=True,
+            type=str2bool,
+            nargs='?',
+            const=True,
+            help="Enables fade effect.")
         args = parser.parse_args()
         return args
     except argparse.ArgumentError as err:
@@ -204,4 +239,6 @@ def get_configuration(args: argparse.Namespace) -> dict:
         "lo": args.lo,
         "ps": args.ps,
         "po": args.po,
+        "to": args.to,
+        "fa": args.fa,
     }

@@ -10,6 +10,8 @@ This project has no particular aim. It is a purely a personal project and barely
 
 It is a CLI based [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life): implementation using numpy for fast calculations and pygame for an interactive simulation.
 
+No Hashlife or Quicklife algorithm support (yet).
+
 ---
 
 Rules of Conway's Game of Life
@@ -61,7 +63,7 @@ Draw with the mouse to birth or kill cells.
 
 ```
 usage: CGOL [-h] [-rw RW] [-rh RH] [-ca CA [CA ...]] [-cd CD [CD ...]] [-cf CF [CF ...]] [-cb CB [CB ...]] [-cs CS] [-gw GW] [-gh GH] [-ti TI] [-se SE]
-            [-sf SF] [-lo LO] [-ps PS] [-po PO] [-fr FR] [-fd FD]
+            [-sf SF] [-lo [LO]] [-ps [PS]] [-po [PO]] [-fr FR] [-fd FD] [-to [TO]] [-fa [FA]]
 
 Conway's Game of Life
 
@@ -79,11 +81,13 @@ options:
   -ti TI           Number of times the game shall update in a second (FPS).
   -se SE           Seed value used to create World.
   -sf SF           Path of the in-/output file. (Should be .csv)
-  -lo LO           Load revious save.
-  -ps PS           Game pauses on a stalemate.
-  -po PO           Game pauses when only oscillators remain.
+  -lo [LO]         Load revious save.
+  -ps [PS]         Game pauses on a stalemate.
+  -po [PO]         Game pauses when only oscillators remain.
   -fr FR           Value by which a cell should decrease every generation.
   -fd FD           Value a cell should have after death.
+  -to [TO]         Enables toroidal space (Cells wrap around edges).
+  -fa [FA]         Enables fade effect.
 ```
 
 | Argument | Description | Default Value |
@@ -105,6 +109,8 @@ options:
 | -po | Game pauses when only oscillators remain. | False |
 | -fr | Value by which a cell should decrease every generation. | 0.01 |
 | -fd | Value a cell should have after death. | 0.5 |
+| -to | Enables toroidal space (Cells wrap around edges). | True |
+| -fa | Enables fade effect. | True |
 
 ## Controls
 

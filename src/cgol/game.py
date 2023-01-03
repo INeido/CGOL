@@ -36,7 +36,7 @@ class Game:
     :param bool po: Game pauses when only (2 period) oscillators remain.
     """
 
-    def __init__(self, rw: int, rh: int, gw: int, gh: int, cs: int, ti: int, se: int, ca: tuple, cd: tuple, cf: tuple, cb: tuple, fr: float, fd: float, sf: str, lo: bool, ps: bool, po: bool):
+    def __init__(self, rw: int, rh: int, gw: int, gh: int, cs: int, ti: int, se: int, ca: tuple, cd: tuple, cf: tuple, cb: tuple, fr: float, fd: float, sf: str, lo: bool, ps: bool, po: bool, to: bool, fa: bool):
         self.res_width = rw
         self.res_height = rh
         self.cell_size = cs
@@ -48,12 +48,12 @@ class Game:
         self.save_file = sf
         self.pause_stalemate = ps
         self.pause_oscillators = po
+        self.toroid = to
+        self.fade = fa
 
         self.create_world(gw, gh, se, lo, fr, fd)
 
-    def run(self) -> None:
         self.setup_pygame()
-        self.game_loop()
 
     def setup_pygame(self) -> None:
         """Creates and configures pygame instance.
@@ -116,15 +116,17 @@ class Game:
         # Reset the background color
         self.dis.fill(self.color_background)
 
-        # Get the slice of self.world.grid that is actually visible and has to be rendered.
+        # Get the slice of self.world.grid that is actually visible and has to be rendered
         colors = self.world.grid[self.vis_west:self.vis_east, self.vis_north:self.vis_south][:, :, numpy.newaxis]
 
+        # Create color arrays in the shape of the clipped self.world.grid so they can be broadcasted together
         color_dead_arr = numpy.full((colors.shape[0], colors.shape[1], 3), self.color_dead)
         color_alive_arr = numpy.full((colors.shape[0], colors.shape[1], 3), self.color_alive)
 
         # Set static colors
         colors = numpy.where(colors == 0, color_dead_arr, colors)
         colors = numpy.where(colors == 1, color_alive_arr, colors)
+
         # Set fading colors using interpolation
         colors = numpy.where((colors > 0) & (colors < 1), (self.color_fade + (self.color_alive - self.color_fade) * colors), colors)
 
@@ -137,7 +139,7 @@ class Game:
         # Create a surface from the array
         sur = pygame.surfarray.make_surface(colors)
 
-        # If the left or top border is not visible, the offset needs to be adjusted.
+        # If the left or top border is not visible, the offset needs to be adjusted
         if self.vis_west > 0:
             off_x = 0
         else:
@@ -175,6 +177,9 @@ class Game:
                 shutdown(pygame)
         else:
             self.world = World(grid_width, grid_height, seed, fr, fd)
+
+        self.world.change_neighbours_func(self.toroid)
+        self.world.change_rules_func(self.fade)
 
         # Gets correct offsets to center the grid
         self.center()
@@ -230,7 +235,7 @@ class Game:
 
             return int(x), int(y)
 
-    def game_loop(self, pause=False) -> None:
+    def run(self, pause=False) -> None:
         """The main loop that runs the game.
         """
         # Flags
