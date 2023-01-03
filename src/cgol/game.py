@@ -66,7 +66,7 @@ class Game:
         """
         if lo:
             try:
-                self.world = World(gw, gh, se, fr, fd, self.load_grid())
+                self.world = World(gw, gh, se, fr, fd, load_grid(self.save_file))
             except Exception as e:
                 print("Couldn't load file.", e)
                 shutdown(pygame)
@@ -87,6 +87,8 @@ class Game:
         """
         pygame.init()
         pygame.display.set_caption("CGOL", "CGOL")
+        icon = pygame.image.load('src/img/icon.png')
+        pygame.display.set_icon(icon)
         self.dis = pygame.display.set_mode((rw, rh), pygame.RESIZABLE, 8,)
         self.clock = pygame.time.Clock()
 
@@ -164,7 +166,7 @@ class Game:
         colors = numpy.repeat(numpy.repeat(colors, self.cell_size, axis=1), self.cell_size, axis=0)
 
         # Create a surface from the array
-        sur = pygame.surfarray.make_surface(colors)
+        self.sur = pygame.surfarray.make_surface(colors)
 
         # If the left or top border is not visible, the offset needs to be adjusted
         if self.vis_west > 0:
@@ -176,7 +178,7 @@ class Game:
         else:
             off_y = self.offset_y
         # Blit the surface to the display
-        self.dis.blit(sur, (off_x, off_y))
+        self.dis.blit(self.sur, (off_x, off_y))
 
         # Update display
         pygame.display.flip()
@@ -303,7 +305,7 @@ class Game:
                         self.get_borders()
                     # P pressed: Save screenshot
                     if event.key == pygame.K_p:
-                        pygame.image.save(self.sur, f"{self.get_save_path() + str(self.world.generations)}.png")
+                        pygame.image.save(self.sur, f"{get_save_path() + str(self.world.generations)}.png")
                     # + pressed: Extend grid
                     if event.key == pygame.K_PLUS:
                         self.world.extend()
