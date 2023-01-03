@@ -11,7 +11,7 @@ Rules of Conway's Game of Life:
 Github Repo:
 https://github.com/INeido/CGOL
 """
-from .world import World
+from .world import *
 from .utils import *
 import pygame
 import numpy

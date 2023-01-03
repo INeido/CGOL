@@ -1,4 +1,4 @@
-from .game import Game
+from .game import *
 from .utils import *
 
 
