@@ -50,7 +50,7 @@ cgol -cf 130 20 0 -cs 8 -gh 90 -gw 160
 
 Change the color to white on black without fade.
 ```bash
-cgol -fd 0.0 -ca 255 255 255
+cgol -fa False -ca 255 255 255
 ```
 ![](https://github.com/INeido/CGOL/blob/main/samples/demo3.gif?raw=true)
 

@@ -24,7 +24,7 @@ class World:
         self.grid_height = gh
         self.fade_rate = fr
         self.fade_dead = fd
-        self.seed = numpy.random.randint(2**32 - 1) if se == -1 else se
+        self.seed = numpy.random.randint(2**16 - 1) if se == -1 else se
         self.generations = 0
 
         # If 'rows' are empty, create new grid, else convert 'rows' to numpy array

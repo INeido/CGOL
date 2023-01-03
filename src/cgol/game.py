@@ -55,6 +55,35 @@ class Game:
 
         self.setup_pygame()
 
+    def create_world(self, gw: int, gh: int, se: int, lo: bool, fr, fd) -> None:
+        """Creates a new World Object.
+
+        Parameters:
+        :param int gw: Height of the Grid.
+        :param int gh: Width of the Grid.
+        :param int se: Seed for the array generation. Default is random (-1).
+        :param bool lo: Boolean indicating whether the last game should be loaded.
+        :param float fr: Value a cell should loose per generation after death.
+        :param float fd: Fade value a cell should start with after death.
+        """
+        if lo:
+            try:
+                self.world = World(gw, gh, se, fr, fd, self.load_grid())
+            except Exception as e:
+                print("Couldn't load file.", e)
+                shutdown(pygame)
+        else:
+            self.world = World(gw, gh, se, fr, fd)
+
+        self.world.change_neighbours_func(self.toroid)
+        self.world.change_rules_func(self.fade)
+
+        # Gets correct offsets to center the grid
+        self.center()
+
+        # Create the pygame surface in the correct size
+        self.get_borders()
+
     def setup_pygame(self) -> None:
         """Creates and configures pygame instance.
         """
@@ -159,33 +188,6 @@ class Game:
         """
         self.offset_x = (self.res_width / 2) - (self.world.grid_width / 2 * self.cell_size)
         self.offset_y = (self.res_height / 2) - (self.world.grid_height / 2 * self.cell_size)
-
-    def create_world(self, grid_width: int, grid_height: int, seed: int, load: bool, fr, fd) -> None:
-        """Creates a new World Object.
-
-        Parameters:
-        :param int grid_width: Height of the Grid.
-        :param int grid_height: Width of the Grid.
-        :param int seed: Seed for the array generation. Default is random (-1).
-        :param bool load: Boolean indicating whether the last game should be loaded.
-        """
-        if load:
-            try:
-                self.world = World(grid_width, grid_height, seed, fr, fd, self.load_grid())
-            except Exception as e:
-                print("Couldn't load file.", e)
-                shutdown(pygame)
-        else:
-            self.world = World(grid_width, grid_height, seed, fr, fd)
-
-        self.world.change_neighbours_func(self.toroid)
-        self.world.change_rules_func(self.fade)
-
-        # Gets correct offsets to center the grid
-        self.center()
-
-        # Create the pygame surface in the correct size
-        self.get_borders()
 
     def calc_generation(self) -> None:
         """Calculates and renders the cells.
