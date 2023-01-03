@@ -1,47 +1,128 @@
+"""COGL File Parser
+"""
+
+
 class RLE:
     """A Run Length Encoded file parser.
 
     https://conwaylife.com/wiki/Run_Length_Encoded
     """
 
-    def __init__(self):
-        self.width = None
-        self.height = None
-        self.rule = None
-        self.comments = ""
-        self.name = ""
-        self.author = ""
-        self.encoded = ""
-        self.decoded = []
+    def encode(array: list, name: str, author: str = None, comments: str = None, rule="B3/S23"):
+        parser = RLE(len(array), len(array[0]), rule, name, author, comments)
 
-    def decode(self, text: str):
+        # Add the header rows
+        parser.encode_header()
+
+        # Add the rules
+        parser.encode_rules()
+
+        # Encode and add the pattern string
+        parser.encode_pattern(array)
+
+        return parser
+
+    def decode(text: str):
+        parser = RLE()
+
+        # Parse the file line by line
         for line in text.split("\n"):
-            self.parse_line(line)
+            parser.decode_line(line)
 
-        return self.parse_pattern()
+        # Decode the extracted pattern string
+        parser.decode_pattern()
 
-    def encode(self, array):
-        # TODO
-        return
+        return parser
 
-    def parse_line(self, line: str):
+    def __init__(self, w: int = 0, h: int = 0, r: str = "", n: str = "", a: str = "", c: str = "", e: str = "", d: list = []):
+        self.width = w
+        self.height = h
+        self.rule = r
+        self.name = n
+        self.author = a
+        self.comments = c
+        self.encoded = e
+        self.decoded = d
+
+    def encode_header(self):
+        self.encoded = "#N " + self.name
+        self.encoded += "\n" + "#O " + self.author
+        lines = self.comments.split("\n")
+        for line in lines:
+            self.encoded += "\n" + "#C " + line
+
+    def encode_rules(self):
+        self.encoded += "\n" + "x = " + str(self.width) + ", y = " + str(self.height)
+        if self.rule is not None:
+            self.encoded += ", rule = " + self.rule
+
+    def encode_pattern(self, array):
+        result = ""
+        last_value = None
+        count = 0
+        for row in array:
+            for value in row:
+                # If the value is the same as the last value, increment the count
+                if value == last_value:
+                    count += 1
+                # If the value is different from the last value, append the count and value to the result string
+                # and reset the count and last_value variables
+                else:
+                    if count > 1:
+                        result += str(count)
+                    if last_value is not None:
+                        if last_value:
+                            result += "o"
+                        else:
+                            result += "b"
+                    count = 1
+                    last_value = value
+            # If the last value was a 1, append the final count and value to the result string
+            if last_value == 1:
+                if count > 1:
+                    result += str(count)
+                result += "o"
+            result += "$"
+            count = 0
+            last_value = None
+        # Remove the last $
+        result = result[:-1] + "!"
+
+        # Line breaks after 70 chars
+        for x in range(len(result)):
+            if not x % 70 and x != 0:
+                result = result[:(x + int(x / 71))] + "\n" + result[(x + int(x / 71)):]
+
+        self.encoded += "\n" + result
+
+    def decode_line(self, line: str) -> None:
         """Read lines of file and determine its type.
 
         Because the number of lines is variable, look at the first character
         per line to determine it's type.
 
-        # is a comment
+        # is a header
         x are the rules
-        Everything else should be encoded pattern.
+        Everything else should be the encoded pattern.
         """
         if line.startswith("#"):
-            print(f"comment: {line}")
+            self.decode_header(line)
         elif line.startswith("x"):
-            self.parse_rule_line(line)
+            self.decode_rule(line)
         else:
             self.encoded += line
 
-    def parse_rule_line(self, line: str):
+    def decode_header(self, line: str) -> None:
+        if line[1:].startswith("C"):
+            self.comments += line[2:] + "\n"
+        elif line[1:].startswith("O"):
+            self.author = line[2:]
+        elif line[1:].startswith("N"):
+            self.name = line[2:]
+        else:
+            raise Exception("Unknown header,")
+
+    def decode_rule(self, line: str) -> None:
         """Extracts rules by splitting after the ',' and '='.
 
         Rules commonly look like this:
@@ -64,7 +145,7 @@ class RLE:
         except:
             pass
 
-    def parse_pattern(self):
+    def decode_pattern(self) -> None:
         result = []
         row = []
         multiplier = 1
@@ -90,4 +171,4 @@ class RLE:
             elif char == '!':
                 result.append(row)
                 break
-        return result
+        self.decoded = result
