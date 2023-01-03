@@ -37,8 +37,6 @@ class Game:
     """
 
     def __init__(self, rw: int, rh: int, gw: int, gh: int, cs: int, ti: int, se: int, ca: tuple, cd: tuple, cf: tuple, cb: tuple, fr: float, fd: float, sf: str, lo: bool, ps: bool, po: bool, to: bool, fa: bool):
-        self.res_width = rw
-        self.res_height = rh
         self.cell_size = cs
         self.tickrate = ti
         self.color_alive = numpy.array(ca)
@@ -51,9 +49,9 @@ class Game:
         self.toroid = to
         self.fade = fa
 
-        self.create_world(gw, gh, se, lo, fr, fd)
+        self.setup_pygame(rw, rh)
 
-        self.setup_pygame()
+        self.create_world(gw, gh, se, lo, fr, fd)
 
     def create_world(self, gw: int, gh: int, se: int, lo: bool, fr, fd) -> None:
         """Creates a new World Object.
@@ -84,12 +82,12 @@ class Game:
         # Create the pygame surface in the correct size
         self.get_borders()
 
-    def setup_pygame(self) -> None:
+    def setup_pygame(self, rw, rh) -> None:
         """Creates and configures pygame instance.
         """
         pygame.init()
-        pygame.display.set_caption("CGOL", "hardware")
-        self.dis = pygame.display.set_mode((self.res_width, self.res_height), 0, 8)
+        pygame.display.set_caption("CGOL", "CGOL")
+        self.dis = pygame.display.set_mode((rw, rh), pygame.RESIZABLE, 8,)
         self.clock = pygame.time.Clock()
 
     def get_borders(self) -> None:
@@ -104,9 +102,9 @@ class Game:
             - vis_height: The height of the visible region, in pixels.
         """
         self.vis_north = max(0, int((-self.offset_y) / self.cell_size))
-        self.vis_south = max(0, min(self.world.grid_height, self.world.grid_height - int(self.offset_y / self.cell_size) - self.world.grid_height - int(-self.res_height / self.cell_size) + 1))
+        self.vis_south = max(0, min(self.world.grid_height, self.world.grid_height - int(self.offset_y / self.cell_size) - self.world.grid_height - int(-self.dis.get_size()[1] / self.cell_size) + 1))
         self.vis_west = max(0, int((-self.offset_x) / self.cell_size))
-        self.vis_east = max(0, min(self.world.grid_width, self.world.grid_width - int(self.offset_x / self.cell_size) - self.world.grid_width - int(-self.res_width / self.cell_size) + 1))
+        self.vis_east = max(0, min(self.world.grid_width, self.world.grid_width - int(self.offset_x / self.cell_size) - self.world.grid_width - int(-self.dis.get_size()[0] / self.cell_size) + 1))
         self.vis_width = (self.vis_east - self.vis_west) * self.cell_size
         self.vis_height = (self.vis_south - self.vis_north) * self.cell_size
 
@@ -186,8 +184,8 @@ class Game:
     def center(self) -> None:
         """Updates offsets so that pygame.surface is centered.
         """
-        self.offset_x = (self.res_width / 2) - (self.world.grid_width / 2 * self.cell_size)
-        self.offset_y = (self.res_height / 2) - (self.world.grid_height / 2 * self.cell_size)
+        self.offset_x = (self.dis.get_size()[0] / 2) - (self.world.grid_width / 2 * self.cell_size)
+        self.offset_y = (self.dis.get_size()[1] / 2) - (self.world.grid_height / 2 * self.cell_size)
 
     def calc_generation(self) -> None:
         """Calculates and renders the cells.
@@ -260,8 +258,12 @@ class Game:
 
             # Event loop
             for event in pygame.event.get():
+                # Game shutdown
                 if event.type == pygame.QUIT:
                     shutdown(pygame)
+                # Display resized
+                elif event.type == pygame.VIDEORESIZE:
+                    self.get_borders()
                 # Key events
                 elif event.type == pygame.KEYDOWN:
                     # RETURN pressed: Pause game
