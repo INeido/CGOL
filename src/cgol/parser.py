@@ -1,5 +1,56 @@
 """COGL File Parser
 """
+import csv as csv_
+
+
+class CSV:
+    """A pretty basic CSV parser.
+
+    Has no other attributes except for the array.
+    """
+
+    def encode(array, delim=',') -> str:
+        """Saves the array into a CSV string.
+
+        :param list array: The array to be encoded.
+        :param string delim: The delimiter of the CSV string.
+        :return: Encoded CSV string.
+        :rtype: str
+        """
+        result = ""
+        try:
+            for row in array:
+                for x in row:
+                    result += str(x) + delim
+                result += "\n"
+            return result
+        except Exception as e:
+            print("Couldn't encode string.", e)
+            return None
+
+    def decode(string: str) -> list:
+        """Loads the Grid from a CSV string.
+
+        :param str string: The string to be decoded.
+        :return: The decoded array.
+        :rtype: array
+        """
+        reader = csv_.reader(string.split('\n'), delimiter=',')
+        result = []
+        row = []
+
+        try:
+            for row_ in reader:
+                for x in row_:
+                    if x == "1" or x == "0":
+                        row.append(int(x))
+                if len(row) != 0:
+                    result.append(row)
+                    row = []
+            return result
+        except Exception as e:
+            print("Couldn't decode string.", e)
+            return None
 
 
 class RLE:
@@ -8,7 +59,8 @@ class RLE:
     https://conwaylife.com/wiki/Run_Length_Encoded
     """
 
-    def encode(array: list, name: str, author: str = None, comments: str = None, rule="B3/S23"):
+    def encode(array, name: str, author: str = "", comments: str = "", rule="B3/S23"):
+        print(array)
         parser = RLE(len(array), len(array[0]), rule, name, author, comments)
 
         # Add the header rows
@@ -44,19 +96,28 @@ class RLE:
         self.encoded = e
         self.decoded = d
 
-    def encode_header(self):
-        self.encoded = "#N " + self.name
-        self.encoded += "\n" + "#O " + self.author
-        lines = self.comments.split("\n")
-        for line in lines:
-            self.encoded += "\n" + "#C " + line
+    def encode_header(self) -> None:
+        """Converts data into header lines and writes them into self.encoded.
+        """
+        if self.name != "":
+            self.encoded = "#N " + self.name
+        if self.author != "":
+            self.encoded += "\n" + "#O " + self.author
+        if self.comments != "":
+            lines = self.comments.split("\n")
+            for line in lines:
+                self.encoded += "\n" + "#C " + line
 
-    def encode_rules(self):
+    def encode_rules(self) -> None:
+        """Converts data into the rules and writes them into self.encoded.
+        """
         self.encoded += "\n" + "x = " + str(self.width) + ", y = " + str(self.height)
-        if self.rule is not None:
+        if self.rule != "":
             self.encoded += ", rule = " + self.rule
 
-    def encode_pattern(self, array):
+    def encode_pattern(self, array) -> None:
+        """Converts the array into an encoded string and writes it into self.encoded.
+        """
         result = ""
         last_value = None
         count = 0
@@ -113,6 +174,13 @@ class RLE:
             self.encoded += line
 
     def decode_header(self, line: str) -> None:
+        """Converts the header lines into data.
+
+        Header lines start with # and are followed by one of the following characters:
+        C: Is a comment
+        O: The author
+        N: Name of the pattern
+        """
         if line[1:].startswith("C"):
             self.comments += line[2:] + "\n"
         elif line[1:].startswith("O"):
@@ -146,6 +214,16 @@ class RLE:
             pass
 
     def decode_pattern(self) -> None:
+        """Decodes the pattern string and write the array into self.decoded.
+
+        The rules are as follows:
+        b = Dead cell
+        o = Alive cell
+        $ = New row
+        ! = End of string
+        Any number in front of b or o is a multiplier. (So 2b is [0, 0].)
+        Dead cells at the end of a row can be omitted.
+        """
         result = []
         row = []
         multiplier = 1

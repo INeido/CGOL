@@ -13,6 +13,7 @@ https://github.com/INeido/CGOL
 """
 from .world import *
 from .utils import *
+from .parser import *
 import pygame
 import numpy
 
@@ -294,11 +295,11 @@ class Game:
                         self.world.populate("kill")
                     # L pressed: Load last saved game
                     if event.key == pygame.K_l:
-                        self.world.load_from_csv(load_grid(self.save_file))
+                        self.world.load_list(CSV.decode(load_import(get_save_path("/cgol/exports/") + "save.csv")))
                         self.get_borders()
                     # S pressed: Save current game
                     if event.key == pygame.K_s:
-                        save_grid(self.world.grid, self.save_file)
+                        save_export(CSV.encode((numpy.where(self.world.grid < 1, 0, 1))), get_save_path("/cgol/exports/") + "save.csv")
                     # C pressed: Center view
                     if event.key == pygame.K_c:
                         self.center()

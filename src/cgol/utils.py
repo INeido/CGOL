@@ -4,43 +4,40 @@ import sys
 import os
 
 
-def get_save_path() -> str:
-    """Makes sure the 'cgol/images' folder exists and return its path.
+def get_save_path(subfolder: str) -> str:
+    """Makes sure the subfolder folder exists and return its path.
 
-    :return: The home directory of the user appended with '/cgol/images'.capitalize()
+    :return: The home directory of the user appended with subfolder.
     :rtype: string
     """
-    path = os.path.expanduser("~") + "/cgol/images/"
+    path = os.path.expanduser("~") + subfolder
     if not os.path.exists(path):
         os.makedirs(path)
     return path
 
 
-def save_grid(grid, save_file) -> bool:
-    """Saves the Grid into a CSV file.
+def save_export(content: str, save_file: str) -> bool:
+    """Saves string in file.
     """
     try:
-        with open(save_file, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-
-            for row in grid:
-                writer.writerow(row)
-        print("Last tick saved into:", save_file)
+        with open(save_file, "w") as file:
+            file.write(content)
+        print("Successfully saved into:", save_file)
         return True
     except Exception as e:
         print("Couldn't save file.", e)
         return False
 
 
-def load_grid(save_file) -> list:
-    """Loads the Grid from a CSV file.
-
-    :return: Rows of the CSV.
-    :rtype: array
+def load_import(save_file) -> str:
+    """Load the contents of a file.
     """
-    with open(save_file, "r") as csvfile:
-        reader = csv.reader(csvfile)
-        return [row for row in reader]
+    try:
+        with open(save_file, "r") as file:
+            return file.read()
+    except Exception as e:
+        print("Couldn't load file.", e)
+        return None
 
 
 def shutdown(pygame) -> None:

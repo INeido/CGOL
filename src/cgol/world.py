@@ -50,10 +50,10 @@ class World:
         else:
             return False
 
-    def load_from_csv(self, grid) -> None:
-        """Loads data from CSV file.
+    def load_list(self, grid) -> None:
+        """Loads data a list
 
-        :param array grid: The 2D Array filled with random 0s and 1s with the last being settings.
+        :param list grid: The 2D List filled with 0s and 1s.
         """
         self.grid = numpy.array(grid, dtype=float)
 
