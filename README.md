@@ -63,7 +63,7 @@ Draw with the mouse to birth or kill cells.
 
 ```
 usage: CGOL [-h] [-rw RW] [-rh RH] [-ca CA [CA ...]] [-cd CD [CD ...]] [-cf CF [CF ...]] [-cb CB [CB ...]] [-cs CS] [-gw GW] [-gh GH] [-ti TI] [-se SE]
-            [-sf SF] [-lo [LO]] [-ps [PS]] [-po [PO]] [-fr FR] [-fd FD] [-to [TO]] [-fa [FA]]
+            [-ps [PS]] [-po [PO]] [-fr FR] [-fd FD] [-to [TO]] [-fa [FA]]
 
 Conway's Game of Life
 
@@ -80,8 +80,6 @@ options:
   -gh GH           Height of the World.
   -ti TI           Number of times the game shall update in a second (FPS).
   -se SE           Seed value used to create World.
-  -sf SF           Path of the in-/output file. (Should be .csv)
-  -lo [LO]         Load revious save.
   -ps [PS]         Game pauses on a stalemate.
   -po [PO]         Game pauses when only oscillators remain.
   -fr FR           Value by which a cell should decrease every generation.
@@ -103,8 +101,6 @@ options:
 | -sy | Width of the World. | 160 |
 | -ti | Number of times the game shall update in a second (FPS). | 60 |
 | -se | Seed value used to create World. | -1 |
-| -sf | Path of the in-/output file. (Should be .csv) | '~/cgol.csv' |
-| -lo | Load revious save. | False |
 | -ps | Game pauses on a stalemate. | False |
 | -po | Game pauses when only oscillators remain. | False |
 | -fr | Value by which a cell should decrease every generation. | 0.01 |

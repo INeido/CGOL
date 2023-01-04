@@ -1,5 +1,4 @@
 import argparse
-import csv
 import sys
 import os
 
@@ -146,22 +145,6 @@ def parse_cli() -> argparse.Namespace:
             type=int,
             help="Seed value used to create World.")
         parser.add_argument(
-            "-sf",
-            dest="sf",
-            required=False,
-            default="./cgol.csv",
-            type=str,
-            help="Path of the in-/output file. (Should be .csv)")
-        parser.add_argument(
-            "-lo",
-            dest="lo",
-            required=False,
-            default=False,
-            type=str2bool,
-            nargs='?',
-            const=True,
-            help="Load revious save.")
-        parser.add_argument(
             "-ps",
             dest="ps",
             required=False,
@@ -232,8 +215,6 @@ def get_configuration(args: argparse.Namespace) -> dict:
         "cb": tuple(args.cb),
         "fr": args.fr,
         "fd": args.fd,
-        "sf": args.sf,
-        "lo": args.lo,
         "ps": args.ps,
         "po": args.po,
         "to": args.to,

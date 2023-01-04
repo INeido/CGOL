@@ -32,19 +32,17 @@ class Game:
     :param tuple cd: Color for dead cells.
     :param tuple cf: Color to fade dead cells to.
     :param tuple cb: Color for background.
-    :param str sf: Path of the in-/output file.
     :param bool ps: Game pauses on a stalemate.
     :param bool po: Game pauses when only (2 period) oscillators remain.
     """
 
-    def __init__(self, rw: int, rh: int, gw: int, gh: int, cs: int, ti: int, se: int, ca: tuple, cd: tuple, cf: tuple, cb: tuple, fr: float, fd: float, sf: str, lo: bool, ps: bool, po: bool, to: bool, fa: bool):
+    def __init__(self, rw: int, rh: int, gw: int, gh: int, cs: int, ti: int, se: int, ca: tuple, cd: tuple, cf: tuple, cb: tuple, fr: float, fd: float, ps: bool, po: bool, to: bool, fa: bool):
         self.cell_size = cs
         self.tickrate = ti
         self.color_alive = numpy.array(ca)
         self.color_dead = numpy.array(cd)
         self.color_fade = numpy.array(cf)
         self.color_background = numpy.array(cb)
-        self.save_file = sf
         self.pause_stalemate = ps
         self.pause_oscillators = po
         self.toroid = to
@@ -52,27 +50,19 @@ class Game:
 
         self.setup_pygame(rw, rh)
 
-        self.create_world(gw, gh, se, lo, fr, fd)
+        self.create_world(gw, gh, se, fr, fd)
 
-    def create_world(self, gw: int, gh: int, se: int, lo: bool, fr, fd) -> None:
+    def create_world(self, gw: int, gh: int, se: int, fr, fd) -> None:
         """Creates a new World Object.
 
         Parameters:
         :param int gw: Height of the Grid.
         :param int gh: Width of the Grid.
         :param int se: Seed for the array generation. Default is random (-1).
-        :param bool lo: Boolean indicating whether the last game should be loaded.
         :param float fr: Value a cell should loose per generation after death.
         :param float fd: Fade value a cell should start with after death.
         """
-        if lo:
-            try:
-                self.world = World(gw, gh, se, fr, fd, load_grid(self.save_file))
-            except Exception as e:
-                print("Couldn't load file.", e)
-                shutdown(pygame)
-        else:
-            self.world = World(gw, gh, se, fr, fd)
+        self.world = World(gw, gh, se, fr, fd)
 
         self.world.change_neighbours_func(self.toroid)
         self.world.change_rules_func(self.fade)
