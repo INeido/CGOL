@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CGOL"
-version = "0.9.3"
+version = "0.9.4"
 description = "A whack Conway's Game of Life implementation."
 readme = "README.md"
 requires-python = ">=3"
@@ -36,3 +36,6 @@ Issues = "https://github.com/INeido/CGOL/issues"
 
 [project.scripts]
 cgol = "cgol.__main__:main"
+
+[tool.setuptools.package-data]
+cgol = ["icon.png"]

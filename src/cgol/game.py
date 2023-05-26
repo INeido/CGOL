@@ -14,6 +14,7 @@ https://github.com/INeido/CGOL
 from .world import *
 from .utils import *
 from .parser import *
+import pkg_resources
 import pygame
 import numpy
 
@@ -78,7 +79,7 @@ class Game:
         """
         pygame.init()
         pygame.display.set_caption("CGOL", "CGOL")
-        icon = pygame.image.load('src/img/icon.png')
+        icon = pygame.image.load(pkg_resources.resource_filename("cgol", "icon.png"))
         pygame.display.set_icon(icon)
         self.dis = pygame.display.set_mode((rw, rh), pygame.RESIZABLE, 8,)
         self.clock = pygame.time.Clock()

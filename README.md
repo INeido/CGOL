@@ -6,9 +6,9 @@ A Conway's Game of Life implementation using numpy and pygame.
 
 ## Description
 
-This project has no particular aim. It is a purely a personal project and barely maintained.
+This project has no particular aim. It is a purely personal project and barely maintained.
 
-It is a CLI based [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life): implementation using numpy for fast calculations and pygame for an interactive simulation.
+It is a CLI based [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) implementation using numpy for fast calculations and pygame for an interactive simulation.
 
 No Hashlife or Quicklife algorithm support (yet).
 
