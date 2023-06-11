@@ -128,6 +128,12 @@ options:
 | S | Save current game. |
 | C | Center view. |
 | P | Save screenshot. |
+| I | Toggle Insert Mode. |
+| Left Click | (Insert Mode) Place loaded pattern. |
+| Middle Scroll | (Insert Mode) Rotate loaded pattern. |
+| 1 | Load `1.rle`. |
+| 2 | Load `2.rle`. |
+| 3 | Load `3.rle`. |
 | Right Arrow | Forward one generation. |
 | + | Extend grid by one cell in every direction. |
 | - | Reduce grid by one cell in every direction. |

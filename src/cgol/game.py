@@ -233,17 +233,19 @@ class Game:
         """The main loop that runs the game.
         """
         # Flags
-        is_looping = True
         running = not pause
         draw = False
         drag = False
         prev_pos = None
+        insert_mode = False
+        rotation = 0
 
         while True:
             self.clock.tick(self.tickrate)
 
             # Save mouse position
             curr_pos = pygame.mouse.get_pos()
+            curr_pos_cell = int((curr_pos[0]-self.offset_x)//self.cell_size), int((curr_pos[1]-self.offset_y)//self.cell_size)
 
             # Screen drag
             if drag and prev_pos != None:
@@ -269,6 +271,9 @@ class Game:
                     # Right Arrow pressed: Forward one generation
                     if event.key == pygame.K_RIGHT:
                         self.calc_generation()
+                    # I pressed: Insert Mode
+                    if event.key == pygame.K_i:
+                        insert_mode = not insert_mode
                     # R pressed: Reset game
                     if event.key == pygame.K_r:
                         self.world.populate("seed")
@@ -286,18 +291,22 @@ class Game:
                         self.world.populate("kill")
                     # L pressed: Load last saved game
                     if event.key == pygame.K_l:
-                        self.world.load_list(CSV.decode(load_import(get_save_path("/cgol/exports/") + "save.csv")))
-                        self.get_borders()
+                        grid = CSV.decode(load_import(get_save_path("/cgol/exports/") + "save.csv"))
+                        if grid is not None:
+                            self.world.load_list(grid)
+                            self.get_borders()
                     # S pressed: Save current game
                     if event.key == pygame.K_s:
-                        save_export(CSV.encode((numpy.where(self.world.grid < 1, 0, 1))), get_save_path("/cgol/exports/") + "save.csv")
+                        grid = CSV.encode((numpy.where(self.world.grid < 1, 0, 1)))
+                        if grid is not None:
+                            save_export(grid, get_save_path("/cgol/exports/") + "save.csv")
                     # C pressed: Center view
                     if event.key == pygame.K_c:
                         self.center()
                         self.get_borders()
                     # P pressed: Save screenshot
                     if event.key == pygame.K_p:
-                        pygame.image.save(self.sur, f"{get_save_path() + str(self.world.generations)}.png")
+                        pygame.image.save(self.sur, f"{get_save_path('/cgol/images/') + str(self.world.seed) + str(self.world.generations)}.png")
                     # + pressed: Extend grid
                     if event.key == pygame.K_PLUS:
                         self.world.extend()
@@ -306,23 +315,38 @@ class Game:
                     if event.key == pygame.K_MINUS:
                         self.world.reduce()
                         self.get_borders()
+                    if event.key == pygame.K_1 and insert_mode:
+                        self.pattern = RLE.decode(load_import(get_save_path("/cgol/patterns/") + "1.rle"))
+                    if event.key == pygame.K_2 and insert_mode:
+                        self.pattern = RLE.decode(load_import(get_save_path("/cgol/patterns/") + "2.rle"))
+                    if event.key == pygame.K_3 and insert_mode:
+                        self.pattern = RLE.decode(load_import(get_save_path("/cgol/patterns/") + "3.rle"))
 
                 # Mouse events
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    # Left/Right Click: Draw
-                    if event.button == 1 or event.button == 3:
-                        oldoffset_x, oldoffset_y = self.offset_x, self.offset_y
-                        prev_pos = curr_pos
-                        draw = True
-                    if event.button == 1:
-                        draw_color = 1
-                    if event.button == 3:
-                        draw_color = 0
-                    # Middle Mouse: Drag screen
-                    if event.button == 2:
-                        oldoffset_x, oldoffset_y = self.offset_x, self.offset_y
-                        prev_pos = curr_pos
-                        drag = True
+                    if insert_mode:
+                        if event.button == 1:
+                            try:
+                                if self.pattern is not None:
+                                    self.world.insert_pattern(numpy.array(self.pattern.decoded), curr_pos_cell, rotation)
+                            except AttributeError:
+                                print("Couldn't insert pattern.")
+                  
+                    else:
+                        # Left/Right Click: Draw
+                        if event.button == 1 or event.button == 3:
+                            oldoffset_x, oldoffset_y = self.offset_x, self.offset_y
+                            prev_pos = curr_pos
+                            draw = True
+                        if event.button == 1:
+                            draw_color = 1
+                        if event.button == 3:
+                            draw_color = 0
+                        # Middle Mouse: Drag screen
+                        if event.button == 2:
+                            oldoffset_x, oldoffset_y = self.offset_x, self.offset_y
+                            prev_pos = curr_pos
+                            drag = True
                 elif event.type == pygame.MOUSEBUTTONUP:
                     # Left/Right Click: Draw
                     if event.button == 1 or event.button == 3:
@@ -335,19 +359,25 @@ class Game:
 
                 # Zoom
                 elif event.type == pygame.MOUSEWHEEL:
-                    if event.y == 1:
-                        self.cell_size *= 2
-                        self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
-                        self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
-                        self.get_borders()
-                    elif event.y == -1 and self.cell_size > 1:
-                        self.cell_size /= 2
-                        self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) / 2
-                        self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) / 2
-                        self.get_borders()
+                    if insert_mode:
+                        if event.y == 1:
+                            rotation += 1
+                        elif event.y == -1:
+                            rotation -= 1
+                    else:
+                        if event.y == 1:
+                            self.cell_size *= 2
+                            self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) * 2
+                            self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) * 2
+                            self.get_borders()
+                        elif event.y == -1 and self.cell_size > 1:
+                            self.cell_size /= 2
+                            self.offset_x = curr_pos[0] + (self.offset_x - curr_pos[0]) / 2
+                            self.offset_y = curr_pos[1] + (self.offset_y - curr_pos[1]) / 2
+                            self.get_borders()
 
             # Interpolate to prevent dotted line
-            if draw and prev_pos != None:
+            if draw and prev_pos != None and not insert_mode:
                 x, y = self.interpolate(prev_pos, curr_pos)
                 if isinstance(x, int) and isinstance(y, int):
                     if 0 <= x < self.world.grid_width and 0 <= y < self.world.grid_height:
@@ -356,10 +386,6 @@ class Game:
                     for xc, yc in zip(x, y):
                         self.world.grid[xc, yc] = draw_color or (0.5 if self.world.grid[xc, yc] == 1.0 and not draw_color else self.world.grid[xc, yc])
                 prev_pos = curr_pos
-
-            # Break out of main loop
-            if not is_looping:
-                break
 
             # Draw before we start updating the cells
             self.draw()

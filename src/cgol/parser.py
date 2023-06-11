@@ -1,4 +1,5 @@
-"""COGL File Parser
+"""
+COGL File Parser
 """
 import csv as csv_
 
@@ -35,11 +36,11 @@ class CSV:
         :return: The decoded array.
         :rtype: array
         """
-        reader = csv_.reader(string.split('\n'), delimiter=',')
-        result = []
-        row = []
-
         try:
+            reader = csv_.reader(string.split('\n'), delimiter=',')
+            result = []
+            row = []
+
             for row_ in reader:
                 for x in row_:
                     if x == "1" or x == "0":
@@ -60,7 +61,6 @@ class RLE:
     """
 
     def encode(array, name: str, author: str = "", comments: str = "", rule="B3/S23"):
-        print(array)
         parser = RLE(len(array), len(array[0]), rule, name, author, comments)
 
         # Add the header rows
@@ -76,6 +76,10 @@ class RLE:
 
     def decode(text: str):
         parser = RLE()
+
+        if text is None:
+            print("Got a NoneType string.")
+            return None
 
         # Parse the file line by line
         for line in text.split("\n"):
@@ -188,7 +192,7 @@ class RLE:
         elif line[1:].startswith("N"):
             self.name = line[2:]
         else:
-            raise Exception("Unknown header,")
+            raise Exception("Unknown header.")
 
     def decode_rule(self, line: str) -> None:
         """Extracts rules by splitting after the ',' and '='.
@@ -213,6 +217,9 @@ class RLE:
         except:
             pass
 
+        if self.rule != "B3/S23" and self.rule != "":
+            raise Exception("Sorry, cant decode a pattern using rule " + self.rule)
+
     def decode_pattern(self) -> None:
         """Decodes the pattern string and write the array into self.decoded.
 
@@ -226,15 +233,15 @@ class RLE:
         """
         result = []
         row = []
-        multiplier = 1
+        multiplier = None
 
         for char in self.encoded:
             if char == 'b':
-                row.extend([0] * multiplier)
-                multiplier = 1
+                row.extend([0] * (1 if multiplier is None else multiplier))
+                multiplier = None
             elif char == 'o':
-                row.extend([1] * multiplier)
-                multiplier = 1
+                row.extend([1] * (1 if multiplier is None else multiplier))
+                multiplier = None
             elif char == '$':
                 row.extend([0] * (self.width - len(row)))
                 if len(row) > self.width:
@@ -242,11 +249,15 @@ class RLE:
                 result.append(row)
                 row = []
             elif char.isdigit():
-                if multiplier > 1:
+                if multiplier is not None:
                     multiplier = int(str(multiplier) + char)
                 else:
                     multiplier = int(char)
             elif char == '!':
+                row.extend([0] * (self.width - len(row)))
+                if len(row) > self.width:
+                    raise Exception("Line too long for pattern width.")
                 result.append(row)
                 break
+
         self.decoded = result

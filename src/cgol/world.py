@@ -64,6 +64,16 @@ class World:
         self.grid_backup_0 = numpy.copy(self.grid)
         self.grid_backup_1 = numpy.copy(temp)
 
+    def insert_pattern(self, pattern, pos, rotation=0) -> None:
+        if not isinstance(pattern, numpy.ndarray) or pattern.ndim < 2:
+            print("Error: Invalid pattern array")
+            return
+
+        pattern = numpy.rot90(pattern, k=rotation)
+        x, y = pos
+
+        self.grid[x:x + pattern.shape[0], y:y + pattern.shape[1]] = pattern
+
     def check_stalemate(self) -> bool:
         """Compares the last backup with the current grid to see of it changed.
 
