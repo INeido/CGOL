@@ -32,7 +32,34 @@ git clone https://github.com/INeido/CGOL
 pip install -e CGOL/.
 ```
 
+### Troubleshooting Installation
+
+If you encounter any errors during the installation process, consider the following options:
+
+If pip is not found you can try to access it using 
+```bash
+python -m pip
+```
+or install it using
+```bash
+python -m ensurepip
+```
+
+You can attempt to install using pipx, a tool designed for running Python applications in isolated environments
+```bash
+pipx install cgol
+```
+
+If issues persist, create a virtual environment and install within it for a clean and isolated setup
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install cgol
+```
+
 ## Usage
+
+NOTE: If you installed using pipx you might have to run `pipx ensurepath` once or prepend `pipx run` to the example commands below.
 
 Here are some examples.
 
